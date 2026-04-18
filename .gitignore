@@ -1,0 +1,7 @@
+# environment:
+venv/
+.venv/
+
+
+# Security/ non-sharable files:
+.env

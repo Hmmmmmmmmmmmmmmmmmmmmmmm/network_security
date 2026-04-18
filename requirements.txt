@@ -2,3 +2,10 @@ python-dotenv
 pandas
 numpy
 matplotlib
+pymongo
+certifi
+
+
+
+
+# -e .

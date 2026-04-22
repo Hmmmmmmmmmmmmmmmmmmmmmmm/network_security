@@ -8,3 +8,5 @@ venv/
 
 # misc, logs, and generated files:
 logs
+Network_Security.egg-info
+__pycache__

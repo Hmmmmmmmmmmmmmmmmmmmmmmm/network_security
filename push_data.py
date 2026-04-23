@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
 
     BASE_DIR = Path(__file__).resolve().parent
-    FILE_PATH = BASE_DIR / "Network_Data" / "phisingData.csv"
+    FILE_PATH = BASE_DIR / "Network_Data" / "phishingData.csv"
     DATABASE = "Aftab_MLProject2"
     Collection = "NetworkData"
     network_obj = NetworkDataExtract()

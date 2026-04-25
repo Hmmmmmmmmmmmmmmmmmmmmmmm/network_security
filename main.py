@@ -9,7 +9,7 @@ from network_security.entity.artifact_entity import DataIngestionArtifact
 from network_security.components.data_ingestion import DataIngestion
 
 
-log = get_logger()
+log = get_logger(__name__)
 
 if __name__ == "__main__":
     try:

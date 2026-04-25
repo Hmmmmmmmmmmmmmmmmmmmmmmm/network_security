@@ -1,17 +1,13 @@
-from email import header
 import os, sys
-from textwrap import indent
-
 from network_security.entity import artifact_entity
 from network_security.exception.exception import NetworkSecurityException
 from network_security.logging.logger import get_logger
 
-log = get_logger()
+log = get_logger(__name__)
 
 # config of the Data Ingestion Config
 from network_security.entity.config_entity import DataIngestionConfig
 from network_security.entity.artifact_entity import DataIngestionArtifact
-
 import pandas as pd
 import numpy as np
 from typing import List
@@ -89,7 +85,7 @@ class DataIngestion:
         try:
             log.info("Initiating Data Ingestion")
             dataframe = self.export_collection_as_dataframe()
-            dataframe = self.export_collection_as_dataframe()
+            dataframe = self.export_data_into_feature_store(dataframe=dataframe)
             self.split_data_as_train_test_library(dataframe=dataframe)
             data_ingestion_artifact = DataIngestionArtifact(
                 trained_file_path=self.data_ingestion_config.training_file_path,

@@ -3,7 +3,7 @@ import os
 from network_security.constant import training_pipeline
 from network_security.logging.logger import get_logger
 
-log = get_logger()
+log = get_logger(__name__)
 
 class TrainingPipelineConfig:
     def __init__(self, timestamp = datetime.now()):
@@ -24,10 +24,10 @@ class DataIngestionConfig:
             self.data_ingestion_dir, training_pipeline.DATA_INGESTION_FEATURE_STORE_DIR, training_pipeline.FILE_NAME
         )
         self.training_file_path: str = os.path.join(
-            self.data_ingestion_dir, training_pipeline.DATA_INGESTION_FEATURE_STORE_DIR, training_pipeline.TRAIN_FILE_NAME
+            self.data_ingestion_dir, training_pipeline.DATA_INGESTION_INGESTED_DIR, training_pipeline.TRAIN_FILE_NAME
         )
         self.testing_file_path: str = os.path.join(
-            self.data_ingestion_dir, training_pipeline.DATA_INGESTION_FEATURE_STORE_DIR, training_pipeline.TEST_FILE_NAME
+            self.data_ingestion_dir, training_pipeline.DATA_INGESTION_INGESTED_DIR, training_pipeline.TEST_FILE_NAME
         )
         self.train_test_split_ratio: float = training_pipeline.DATA_INGESTION_TRAIN_TEST_SPLIT_RATIO
         self.collection_name: str = training_pipeline.DATA_INGESTION_COLLECTION_NAME

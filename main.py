@@ -4,9 +4,10 @@ import os, sys
 from network_security.exception.exception import NetworkSecurityException
 from network_security.logging.logger import get_logger
 
-from network_security.entity.config_entity import DataIngestionConfig, TrainingPipelineConfig, DataValidationConfig
+from network_security.entity.config_entity import DataIngestionConfig, TrainingPipelineConfig, DataValidationConfig, DataTransformationConfig
 from network_security.components.data_validation import DataValidation
-from network_security.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact
+from network_security.components.data_transformation import DataTransformation
+from network_security.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact
 from network_security.components.data_ingestion import DataIngestion
 
 
@@ -14,6 +15,7 @@ log = get_logger(__name__)
 
 if __name__ == "__main__":
     try:
+        print("MEWMEWMEW")
         log.info("Testing Data Ingestion segment")
         # datetime = datetime.now()
         training_pipeline_config = TrainingPipelineConfig()
@@ -30,6 +32,14 @@ if __name__ == "__main__":
         )
         data_validation_artifact = data_validation.initiate_data_validation()
         log.info(f"Data validation Artifact Created, Successfully Ran:\n{data_validation_artifact}")
+        log.info("Initializing Data Transformation")
+        data_transformation_config = DataTransformationConfig(training_pipeline_config=training_pipeline_config,)
+        data_transformation = DataTransformation(
+            data_transformation_config=data_transformation_config,
+            data_validation_artifact=data_validation_artifact,
+        )
+        data_transformation_artifact = data_transformation.initiate_data_transformation()
+        log.info(f"Data Transformation Artifact Created, Successfully Ran:\n{data_transformation_artifact}")
     except Exception as e:
         log.error("Failed during data ingestion", exc_info=True)
         raise NetworkSecurityException(e, sys) from e

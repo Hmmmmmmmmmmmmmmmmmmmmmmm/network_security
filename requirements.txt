@@ -11,7 +11,8 @@ dill
 catboost
 xgboost
 seaborn
-
+mlflow
+dagshub
 
 
 # -e .

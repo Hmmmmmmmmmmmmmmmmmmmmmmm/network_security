@@ -29,7 +29,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.preprocessing import label_binarize
 # ML_functions:
 def evaluate_classifiers(
@@ -255,7 +255,8 @@ def tune_models(
     logs=True,
     plot = False,
     report_dir = None,
-    csv_path = None
+    csv_path = None,
+    do_GridSearch = False
 ):
     tuned_results = {}
     best_models = {}
@@ -277,16 +278,40 @@ def tune_models(
                     print(f"No param grid for {name}, skipping...")
                 continue
 
-            search = RandomizedSearchCV(
-                estimator=model,
-                param_distributions=params,
-                n_iter=n_iter,
-                scoring="f1_weighted",
-                cv=5,
-                n_jobs=-1,
-                verbose=1,
-                random_state=42
-            )
+            # search = RandomizedSearchCV(
+            #     estimator=model,
+            #     param_distributions=params,
+            #     n_iter=n_iter,
+            #     scoring="f1_weighted",
+            #     cv=5,
+            #     n_jobs=-1,
+            #     verbose=1,
+            #     random_state=42
+            # )
+            if do_GridSearch:
+                if verbose:
+                    print("Using GridSearchCV...")
+                search = GridSearchCV(
+                    estimator=model,
+                    param_grid=params,
+                    scoring="f1_weighted",
+                    cv=5,
+                    n_jobs=-1,
+                    verbose=1
+                )
+            else:
+                if verbose:
+                    print("Using RandomizedSearchCV...")
+                search = RandomizedSearchCV(
+                    estimator=model,
+                    param_distributions=params,
+                    n_iter=n_iter,
+                    scoring="f1_weighted",
+                    cv=5,
+                    n_jobs=-1,
+                    verbose=1,
+                    random_state=42
+                )
 
             search.fit(X_train, y_train)
 

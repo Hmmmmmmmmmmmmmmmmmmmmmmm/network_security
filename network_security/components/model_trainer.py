@@ -1,4 +1,6 @@
-from network_security.entity.artifact_entity import DataTransformationArtifact, ModelTrainerArtifact
+import mlflow.sklearn
+
+from network_security.entity.artifact_entity import DataTransformationArtifact, ModelTrainerArtifact, ClassificationMetricArtifact
 from network_security.entity.config_entity import ModelTrainerConfig
 
 from network_security.exception.exception import NetworkSecurityException
@@ -34,6 +36,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
+import mlflow
 
 class ModelTrainer:
     def __init__(self, model_trainer_config: ModelTrainerConfig,
@@ -45,6 +48,14 @@ class ModelTrainer:
         except Exception as e:
             # log.error("Failed during data ingestion", exc_info=True)
             raise NetworkSecurityException(e, sys) from e
+
+    def log_metrics(self, prefix: str, metrics: ClassificationMetricArtifact):
+        mlflow.log_metric(f"{prefix}_accuracy", metrics.accuracy_score)
+        mlflow.log_metric(f"{prefix}_f1", metrics.f1_score)
+        mlflow.log_metric(f"{prefix}_precision", metrics.precision_score)
+        mlflow.log_metric(f"{prefix}_recall", metrics.recall_score)
+        mlflow.log_metric(f"{prefix}_roc_auc", metrics.roc_auc_score)
+        mlflow.log_metric(f"{prefix}_avg_precision", metrics.average_precision_score)
 
     def train_model(self, train_array):
         try:
@@ -91,7 +102,8 @@ class ModelTrainer:
                 X_val, y_val,
                 models,
                 param_grids,
-                top_models
+                top_models,
+                do_GridSearch = True
             )
             best_model_name = max(
                 tuned_results,
@@ -112,7 +124,7 @@ class ModelTrainer:
                 "best_params": tuned_results[best_model_name]["best_params"],
             }
             log.info(summary)
-            return best_model
+            return best_model_name, best_model, tuned_results[best_model_name]["best_params"]
 
 
         except Exception as e:
@@ -132,12 +144,13 @@ class ModelTrainer:
                 test_arr[:,:-1],
                 test_arr[:,-1],
             )
-            model = self.train_model(train_arr)
+            model_name, model, params = self.train_model(train_arr)
 
             # Train metrics
             y_train_pred = model.predict(x_train)
             y_train_score = model.predict_proba(x_train) if hasattr(model, "predict_proba") else None
 
+            classification_train_metrics: ClassificationMetricArtifact
             classification_train_metrics, _, _ = get_classification_metrics(
                 y_true=y_train,
                 y_pred=y_train_pred,
@@ -145,17 +158,39 @@ class ModelTrainer:
                 model_name="Train"
             )
 
-            # Tracking MLFlow!
             # Test metrics
             y_test_pred = model.predict(x_test)
             y_test_score = model.predict_proba(x_test) if hasattr(model, "predict_proba") else None
 
+            classification_test_metrics: ClassificationMetricArtifact
             classification_test_metrics, _, _ = get_classification_metrics(
                 y_true=y_test,
                 y_pred=y_test_pred,
                 y_score=y_test_score,
                 model_name="Test"
             )
+
+            # Tracking MLFlow!
+            # self.track_mlflow(
+            #     "train",model, classification_train_metrics
+            # )
+            # self.track_mlflow(
+            #     "test",model, classification_test_metrics
+            # )
+            # mlflow.set_experiment("NetworkSecurityModel")
+            with mlflow.start_run(run_name=model_name):
+                # Log params
+                mlflow.log_param("model_name", model_name)
+                # mlflow.log_params(params)
+                for k, v in params.items():
+                    mlflow.log_param(k, v)
+                # Train metrics
+                self.log_metrics("train", classification_train_metrics)
+                # Test metrics
+                self.log_metrics("test", classification_test_metrics)
+                # Log model ONCE
+                mlflow.sklearn.log_model(model, "model")
+
 
             preprocessor = load_object(file_path=self.data_transformation_artifact.transformed_object_file_path)
 

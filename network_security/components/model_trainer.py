@@ -37,6 +37,8 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import mlflow
+import dagshub
+dagshub.init(repo_owner='Hmmmmmmmmmmmmmmmmmmmmmmm', repo_name='network_security', mlflow=True)
 
 class ModelTrainer:
     def __init__(self, model_trainer_config: ModelTrainerConfig,
@@ -103,6 +105,7 @@ class ModelTrainer:
                 models,
                 param_grids,
                 top_models,
+                n_iter=100,
                 do_GridSearch = True
             )
             best_model_name = max(

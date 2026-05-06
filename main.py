@@ -22,6 +22,8 @@ from network_security.entity.artifact_entity import(
     DataTransformationArtifact,
     ModelTrainerArtifact
 )
+from network_security.components.model_pusher_trial import ModelSelector
+from network_security.entity.config_entity import ModelSelectorConfig
 
 
 
@@ -30,6 +32,8 @@ log = get_logger(__name__)
 if __name__ == "__main__":
     try:
         print("MEWMEWMEW")
+        import dagshub
+        dagshub.init(repo_owner='Hmmmmmmmmmmmmmmmmmmmmmmm', repo_name='network_security', mlflow=True)
         log.info("Testing Data Ingestion segment")
         # datetime = datetime.now()
         training_pipeline_config = TrainingPipelineConfig()
@@ -56,11 +60,32 @@ if __name__ == "__main__":
         log.info(f"Data Transformation Artifact Created, Successfully Ran:\n{data_transformation_artifact}")
 
         log.info("Model Training stared")
-        model_trainer_config=ModelTrainerConfig(training_pipeline_config=training_pipeline_config)
-        model_trainer=ModelTrainer(model_trainer_config=model_trainer_config, data_transformation_artifact=data_transformation_artifact)
+        model_trainer_config=ModelTrainerConfig(
+            training_pipeline_config=training_pipeline_config
+        )
+        model_trainer=ModelTrainer(
+            model_trainer_config=model_trainer_config,
+            data_transformation_artifact=data_transformation_artifact
+        )
         model_trainer_artifact=model_trainer. initiate_model_trainer()
         log.info(f"Model Training Artifact Created, Successfully Ran:\n{model_trainer_artifact}")
 
+        # ... existing pipeline steps above ...
+
+        log.info("Initializing Model Selector")
+        model_selector_config = ModelSelectorConfig(
+            training_pipeline_config=training_pipeline_config
+        )
+        model_selector = ModelSelector(
+            model_selector_config  = model_selector_config,
+            model_trainer          = model_trainer,
+            model_trainer_artifact = model_trainer_artifact,
+        )
+        best_model_artifact = model_selector.initiate_model_selector()
+        log.info(f"Model Selector Artifact Created, Successfully Ran:\n{best_model_artifact}")
+
+        log.info("Training pipeline completed successfully")
+
     except Exception as e:
-        log.error("Failed during data ingestion", exc_info=True)
+        log.error("Skill Issue", exc_info=True)
         raise NetworkSecurityException(e, sys) from e

@@ -1,5 +1,5 @@
 import mlflow.sklearn
-
+from typing import Any, Dict
 from network_security.entity.artifact_entity import DataTransformationArtifact, ModelTrainerArtifact, ClassificationMetricArtifact
 from network_security.entity.config_entity import ModelTrainerConfig
 
@@ -37,8 +37,8 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import mlflow
-import dagshub
-dagshub.init(repo_owner='Hmmmmmmmmmmmmmmmmmmmmmmm', repo_name='network_security', mlflow=True)
+# import dagshub
+# dagshub.init(repo_owner='Hmmmmmmmmmmmmmmmmmmmmmmm', repo_name='network_security', mlflow=True)
 
 class ModelTrainer:
     def __init__(self, model_trainer_config: ModelTrainerConfig,
@@ -47,6 +47,7 @@ class ModelTrainer:
             log.info("Entered ModelTrainer Constructor")
             self.model_trainer_config = model_trainer_config
             self.data_transformation_artifact = data_transformation_artifact
+            self.preprocessor_path = self.data_transformation_artifact.transformed_object_file_path
         except Exception as e:
             # log.error("Failed during data ingestion", exc_info=True)
             raise NetworkSecurityException(e, sys) from e
@@ -59,6 +60,26 @@ class ModelTrainer:
         mlflow.log_metric(f"{prefix}_roc_auc", metrics.roc_auc_score)
         mlflow.log_metric(f"{prefix}_avg_precision", metrics.average_precision_score)
 
+    @staticmethod
+    def get_models() -> dict:
+        """
+        Single source of truth for all candidate models.
+        Imported by ModelSelector to avoid registry duplication.
+        """
+        return {
+            "Random Forest":               RandomForestClassifier(),
+            "Logistic Regression":         LogisticRegression(max_iter=1000),
+            "Ridge Classifier":            RidgeClassifier(),
+            "SGD Classifier (ElasticNet)": SGDClassifier(loss="log_loss", penalty="elasticnet"),
+            "KNN":                         KNeighborsClassifier(),
+            "SVC":                         SVC(probability=True),
+            "Decision Tree":               DecisionTreeClassifier(),
+            "Gradient Boosting":           GradientBoostingClassifier(),
+            "AdaBoost":                    AdaBoostClassifier(estimator=DecisionTreeClassifier()),
+            "XGBoost":                     XGBClassifier(eval_metric="logloss"),
+            "CatBoost":                    CatBoostClassifier(verbose=0),
+        }
+
     def train_model(self, train_array):
         try:
             log.info("Training models")
@@ -69,24 +90,7 @@ class ModelTrainer:
                 random_state=42,
                 stratify=train_array[:, -1]
             )
-            models = {
-                "Random Forest": RandomForestClassifier(),
-                "Logistic Regression": LogisticRegression(max_iter=1000),
-                "Ridge Classifier": RidgeClassifier(),
-                "SGD Classifier (ElasticNet)": SGDClassifier(
-                    loss="log_loss",
-                    penalty="elasticnet"
-                ),
-                "KNN": KNeighborsClassifier(),
-                "SVC": SVC(probability=True),
-                "Decision Tree": DecisionTreeClassifier(),
-                "Gradient Boosting": GradientBoostingClassifier(),
-                "AdaBoost": AdaBoostClassifier(
-                    estimator=DecisionTreeClassifier()
-                ),
-                "XGBoost": XGBClassifier(eval_metric="logloss"),
-                "CatBoost": CatBoostClassifier(verbose=0)
-            }
+            models = ModelTrainer.get_models()
 
             results_df = evaluate_classifiers(
                 X_train=X_train_full,
@@ -132,6 +136,52 @@ class ModelTrainer:
 
         except Exception as e:
             raise NetworkSecurityException(e, sys) from e
+
+    def train_single_model(self, model_name: str, raw_params: Dict[str, str]) -> Any:
+        """
+        Train a single named model with given params on the full training data.
+        Called by ModelSelector to retrain with historical best params —
+        keeps all training logic inside ModelTrainer.
+        """
+        models = ModelTrainer.get_models()
+        if model_name not in models:
+            raise ValueError(
+                f"Model '{model_name}' not found in ModelTrainer registry. "
+                f"Available: {list(models.keys())}"
+            )
+
+        # Cast string params from MLflow using the YAML grid as type reference
+        config      = read_yaml(self.model_trainer_config.param_grid_file_path)
+        param_grids = config.get("param_grids", {})
+        grid        = param_grids.get(model_name, {})
+        params      = {}
+
+        for k, v_str in raw_params.items():
+            if k in grid and grid[k]:
+                ref = grid[k][0]
+                try:
+                    if isinstance(ref, bool):    params[k] = str(v_str).lower() == "true"
+                    elif isinstance(ref, int):   params[k] = int(v_str)
+                    elif isinstance(ref, float): params[k] = float(v_str)
+                    else:                        params[k] = v_str
+                except (ValueError, TypeError):  params[k] = v_str
+            else:
+                try:    params[k] = int(v_str)
+                except:
+                    try:    params[k] = float(v_str)
+                    except: params[k] = v_str
+
+        log.info("train_single_model — %s  params: %s", model_name, params)
+
+        # Fresh instance from registry with historical params
+        model = models[model_name].__class__(**params)
+
+        train_arr = load_numpy_array_data(
+            self.data_transformation_artifact.transformed_train_file_path
+        )
+        model.fit(train_arr[:, :-1], train_arr[:, -1])
+        log.info("train_single_model — training complete: %s", model.__class__.__name__)
+        return model
 
     def initiate_model_trainer(self):
         try:
@@ -180,19 +230,29 @@ class ModelTrainer:
             # self.track_mlflow(
             #     "test",model, classification_test_metrics
             # )
-            # mlflow.set_experiment("NetworkSecurityModel")
+            mlflow.set_experiment("NetworkSecurityModel")
             with mlflow.start_run(run_name=model_name):
                 # Log params
-                mlflow.log_param("model_name", model_name)
+                # mlflow.log_param("model_name", model_name)
+                mlflow.set_tag("model_name", model_name)
+                mlflow.set_tag("pipeline", "NetworkSecurity")
+
                 # mlflow.log_params(params)
                 for k, v in params.items():
                     mlflow.log_param(k, v)
+
                 # Train metrics
                 self.log_metrics("train", classification_train_metrics)
                 # Test metrics
                 self.log_metrics("test", classification_test_metrics)
                 # Log model ONCE
                 mlflow.sklearn.log_model(model, "model")
+                preprocessor_local_path = str(self.preprocessor_path)
+                log.info("Logging preprocessor artifact from: %s", preprocessor_local_path)
+                mlflow.log_artifact(
+                    local_path=preprocessor_local_path,
+                    artifact_path="preprocessor"
+                )
 
 
             preprocessor = load_object(file_path=self.data_transformation_artifact.transformed_object_file_path)

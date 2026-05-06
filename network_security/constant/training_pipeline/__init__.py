@@ -23,6 +23,7 @@ MODEL_FILE_NAME: str = "model.pkl"
 
 SAVED_MODEL_DIR = os.path.join("saved_models")
 
+FINAL_MODEL_DIR: str = "Final_Model"
 
 """
 Data Ingestion related constant starts with DATA_INGESTION VAR NAME
@@ -72,3 +73,14 @@ MODEL_TRAINER_EXPECTED_SCORE: float = 0.6
 MODEL_TRAINER_OVER_FITTING_UNDER_FITTING_THRESHOLD: float = 0.05
 MODEL_TRAINER_PARAM_GRID_YAML_FILE_NAME: str = "param_grid.yaml"
 MODEL_TRAINER_PARAM_GRID_YAML_FILE_PATH = os.path.join("Model_parameters",MODEL_TRAINER_PARAM_GRID_YAML_FILE_NAME)
+
+
+"""
+Model Selector related constant start with MODE SELECTOR VAR NAME
+"""
+MODEL_SELECTOR_EXPERIMENT_NAME: str = "NetworkSecurityModel"
+MODEL_SELECTOR_METRIC_NAME: str     = "test_f1"          # matches log_metrics("test", ...) → test_f1
+MODEL_SELECTOR_DIR_NAME: str        = "model_selector"
+MODEL_SELECTOR_BEST_MODEL_DIR: str  = "best_model"
+MODEL_SELECTOR_BEST_MODEL_FILE_NAME: str = "best_model.pkl"
+MODEL_SELECTOR_METADATA_FILE_NAME: str   = "best_model_metadata.json"

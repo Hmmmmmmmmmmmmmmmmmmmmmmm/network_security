@@ -14,3 +14,5 @@ temp_notes.txt
 temp.ipynb
 temp_metric.py
 catboost_info
+temp_*
+temp_*.py

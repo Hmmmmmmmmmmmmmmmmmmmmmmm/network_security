@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
 
 @dataclass
 class DataIngestionArtifact:
@@ -35,3 +36,17 @@ class ModelTrainerArtifact:
     trained_model_file_path: str
     train_metric_artifact: ClassificationMetricArtifact
     test_metric_artifact: ClassificationMetricArtifact
+
+@dataclass
+class BestModelArtifact:
+    experiment_name:          str
+    run_id:                   str
+    model_name:               str            # from MLflow tag  "model_name"
+    model_class_name:         str            # model.__class__.__name__
+    metric_name:              str
+    metric_value:             float
+    mlflow_model_uri:         str
+    selected_model_file_path: str
+    preprocessor_file_path:   Optional[str]
+    params:                   Dict[str, str] = field(default_factory=dict)
+    tags:                     Dict[str, str] = field(default_factory=dict)

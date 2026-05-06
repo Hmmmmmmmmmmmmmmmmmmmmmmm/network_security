@@ -79,7 +79,25 @@ class ModelTrainerConfig:
         self.overfitting_underfitting_threshold: float = training_pipeline.MODEL_TRAINER_OVER_FITTING_UNDER_FITTING_THRESHOLD
         self.param_grid_file_path: str = training_pipeline.MODEL_TRAINER_PARAM_GRID_YAML_FILE_PATH
 
-
+class ModelSelectorConfig:
+    def __init__(self, training_pipeline_config: TrainingPipelineConfig):
+        self.model_selector_dir: str = os.path.join(
+            training_pipeline_config.artifact_dir, training_pipeline.MODEL_SELECTOR_DIR_NAME
+        )
+        # ── timestamped metadata lives in Artifacts/ as usual ──
+        self.best_model_dir: str = os.path.join(
+            self.model_selector_dir, training_pipeline.MODEL_SELECTOR_BEST_MODEL_DIR
+        )
+        self.metadata_file_path: str = os.path.join(
+            self.best_model_dir, training_pipeline.MODEL_SELECTOR_METADATA_FILE_NAME
+        )
+        # ── Final_Model is fixed at project root, always overwritten with latest best ──
+        self.final_model_dir: str = training_pipeline.FINAL_MODEL_DIR
+        self.best_model_file_path: str = os.path.join(
+            self.final_model_dir, training_pipeline.MODEL_SELECTOR_BEST_MODEL_FILE_NAME
+        )
+        self.experiment_name: str = training_pipeline.MODEL_SELECTOR_EXPERIMENT_NAME
+        self.metric_name: str     = training_pipeline.MODEL_SELECTOR_METRIC_NAME
 # testing:
 if __name__ == "__main__":
     print(training_pipeline.PIPELINE_NAME)

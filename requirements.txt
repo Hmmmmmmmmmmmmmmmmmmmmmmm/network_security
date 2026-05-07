@@ -13,6 +13,8 @@ xgboost
 seaborn
 mlflow
 dagshub
+fastapi
+uvicorn
 
 
 # -e .

@@ -14,6 +14,7 @@ from network_security.entity.config_entity import ModelSelectorConfig
 from network_security.exception.exception import NetworkSecurityException
 from network_security.logging.logger import get_logger
 from network_security.utils.main_utils.utils import save_object
+from network_security.utils.ml_utils.model.estimator import NetworkModel
 
 log = get_logger(__name__)
 
@@ -104,7 +105,17 @@ class ModelSelector:
 
     # ── Save helpers ─────────────────────────────────────────────────────────
 
-    def _save_bundle(self, model: Any, preprocessor: Optional[Any]) -> str:
+    def _save_bundle(self, model: Any, preprocessor: Any) -> str:
+        """
+        Save as NetworkModel — preserves the predict() interface
+        (preprocessor.transform → model.predict) for batch prediction.
+        """
+        network_model = NetworkModel(model=model, preprocessor=preprocessor)
+        save_object(file_path=self.cfg.best_model_file_path, obj=network_model)
+        log.info("NetworkModel saved to: %s", self.cfg.best_model_file_path)
+        return self.cfg.best_model_file_path
+
+    def _save_bundle_previous_iter(self, model: Any, preprocessor: Optional[Any]) -> str:
         bundle = {"model": model, "preprocessor": preprocessor}
         save_object(file_path=self.cfg.best_model_file_path, obj=bundle)
         log.info("Model bundle saved to: %s", self.cfg.best_model_file_path)

@@ -22,7 +22,7 @@ from network_security.entity.artifact_entity import(
     DataTransformationArtifact,
     ModelTrainerArtifact
 )
-from network_security.components.model_pusher_trial import ModelSelector
+from network_security.components.model_selector import ModelSelector
 from network_security.entity.config_entity import ModelSelectorConfig
 
 
@@ -70,7 +70,6 @@ if __name__ == "__main__":
         model_trainer_artifact=model_trainer. initiate_model_trainer()
         log.info(f"Model Training Artifact Created, Successfully Ran:\n{model_trainer_artifact}")
 
-        # ... existing pipeline steps above ...
 
         log.info("Initializing Model Selector")
         model_selector_config = ModelSelectorConfig(

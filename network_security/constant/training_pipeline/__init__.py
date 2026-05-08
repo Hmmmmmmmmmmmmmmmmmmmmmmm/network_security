@@ -24,6 +24,11 @@ MODEL_FILE_NAME: str = "model.pkl"
 SAVED_MODEL_DIR = os.path.join("saved_models")
 
 FINAL_MODEL_DIR: str = "Final_Model"
+FINAL_MODEL_PATH = os.path.join(FINAL_MODEL_DIR,"best_model.pkl")
+
+PREDICTED_OUTPUT_DIR: str = "predicted_output"
+PREDICTED_OUTPUT_FILE_NAME: str = "output.csv"
+DEFAULT_TEST_FILE = os.path.join("valid_data","test.csv")
 
 """
 Data Ingestion related constant starts with DATA_INGESTION VAR NAME

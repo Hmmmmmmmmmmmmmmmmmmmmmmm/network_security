@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NetGuard ML — Network Security Intelligence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #050810;
+      --bg2:       #0a1020;
+      --bg3:       #0f1a30;
+      --accent:    #00d4aa;
+      --accent2:   #ff3b6b;
+      --accent3:   #4d9fff;
+      --text:      #c8d6e8;
+      --text-dim:  #5a7a9a;
+      --border:    #1a2f4a;
+      --glow:      0 0 20px rgba(0,212,170,0.3);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── Grid background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Radial glow backdrop ── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(0,212,170,0.07) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5,8,16,0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+
+    .nav-brand span { color: var(--text-dim); }
+
+    .nav-links { display: flex; gap: 32px; }
+
+    .nav-links a {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,212,170,0.4); }
+      50%       { opacity: 0.6; box-shadow: 0 0 0 5px rgba(0,212,170,0); }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 48px 80px;
+      text-align: center;
+    }
+
+    .hero-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(0,212,170,0.3);
+      padding: 5px 16px;
+      border-radius: 2px;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.2s;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 10vw, 9rem);
+      line-height: 0.92;
+      letter-spacing: 0.04em;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.4s;
+    }
+
+    .hero-title .line1 { color: var(--text); display: block; }
+    .hero-title .line2 {
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--accent);
+      display: block;
+    }
+
+    .hero-desc {
+      max-width: 560px;
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--text-dim);
+      margin-bottom: 56px;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.6s;
+    }
+
+    .hero-desc strong { color: var(--text); font-weight: 500; }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.8s;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 14px 32px;
+      border-radius: 2px;
+      transition: all 0.25s;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #00ffcc;
+      box-shadow: var(--glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--accent2);
+      border: 1px solid rgba(255,59,107,0.4);
+    }
+
+    .btn-danger:hover {
+      background: rgba(255,59,107,0.1);
+      border-color: var(--accent2);
+      box-shadow: 0 0 20px rgba(255,59,107,0.2);
+      transform: translateY(-2px);
+    }
+
+    /* ── METRICS STRIP ── */
+    .metrics-strip {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 64px;
+      flex-wrap: wrap;
+    }
+
+    .metric {
+      text-align: center;
+    }
+
+    .metric-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.8rem;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .metric-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .metric-divider {
+      width: 1px;
+      height: 48px;
+      background: var(--border);
+    }
+
+    /* ── CARDS SECTION ── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 96px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 48px;
+      color: var(--text);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .card {
+      background: var(--bg2);
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover { background: var(--bg3); }
+    .card:hover::before { opacity: 1; }
+
+    .card-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 4rem;
+      color: rgba(0,212,170,0.08);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .card-desc {
+      font-size: 0.92rem;
+      line-height: 1.75;
+      color: var(--text-dim);
+    }
+
+    /* ── PIPELINE ── */
+    .pipeline {
+      position: relative;
+      z-index: 1;
+      padding: 80px 48px;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pipeline-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .pipeline-steps {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-top: 48px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .pipe-step {
+      flex: 1;
+      min-width: 130px;
+      text-align: center;
+      position: relative;
+    }
+
+    .pipe-step::after {
+      content: '→';
+      position: absolute;
+      right: -12px;
+      top: 18px;
+      color: var(--text-dim);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1rem;
+    }
+
+    .pipe-step:last-child::after { display: none; }
+
+    .pipe-icon {
+      width: 44px; height: 44px;
+      border-radius: 2px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+
+    .pipe-step:hover .pipe-icon {
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+    }
+
+    .pipe-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    /* ── ACTIONS ── */
+    .actions-section {
+      position: relative;
+      z-index: 1;
+      padding: 96px 48px;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .action-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .action-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 40px 32px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: all 0.3s;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,212,170,0.04), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .action-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4), var(--glow);
+    }
+
+    .action-card:hover::after { opacity: 1; }
+
+    .action-card.danger:hover {
+      border-color: var(--accent2);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(255,59,107,0.2);
+    }
+
+    .action-icon {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .action-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.9rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .action-card.danger .action-title { color: var(--accent2); }
+    .action-card:not(.danger) .action-title { color: var(--accent); }
+
+    .action-desc {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text-dim);
+      margin-bottom: 24px;
+    }
+
+    .action-cta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .action-card:not(.danger) .action-cta { color: var(--accent); }
+    .action-card.danger .action-cta { color: var(--accent2); }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    .footer-copy {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    /* ── SCROLL INDICATOR ── */
+    .scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 1.2s;
+    }
+
+    .scroll-hint span {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollLine 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scrollLine {
+      0%   { transform: scaleY(0); transform-origin: top; }
+      50%  { transform: scaleY(1); transform-origin: top; }
+      51%  { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-brand">Net<span>Guard</span> ML</div>
+    <div class="nav-links">
+      <a href="#pipeline">Pipeline</a>
+      <a href="#features">Features</a>
+      <a href="#actions">Actions</a>
+      <a href="/docs">API Docs</a>
+    </div>
+    <div class="nav-status">
+      <div class="status-dot"></div>
+      System Online
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">// Network Security Intelligence System</div>
+    <h1 class="hero-title">
+      <span class="line1">Threat</span>
+      <span class="line2">Detection</span>
+    </h1>
+    <p class="hero-desc">
+      An end-to-end <strong>ML pipeline</strong> for network intrusion detection.
+      Ingests live data, trains across 11 models with hyperparameter tuning,
+      and serves real-time predictions — all through a single API.
+    </p>
+    <div class="hero-actions">
+      <a href="/train" class="btn btn-primary">⟶ Run Training Pipeline</a>
+      <!-- <a href="#actions" class="btn btn-secondary">Upload &amp; Predict</a>-->
+      <a href="/predict" class="btn btn-secondary">Upload &amp; Predict</a>
+      <a href="/docs" class="btn btn-secondary">API Reference</a>
+    </div>
+    <!-- <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div> -->
+  </section>
+
+  <!-- METRICS -->
+  <div class="metrics-strip">
+    <div class="metric">
+      <div class="metric-value">97.9%</div>
+      <div class="metric-label">Best F1 Score</div>
+    </div>
+    <div class="metric-divider"></div>
+    <div class="metric">
+      <div class="metric-value">11</div>
+      <div class="metric-label">Models Evaluated</div>
+    </div>
+    <div class="metric-divider"></div>
+    <div class="metric">
+      <div class="metric-value">5</div>
+      <div class="metric-label">Top Models Tuned</div>
+    </div>
+    <div class="metric-divider"></div>
+    <div class="metric">
+      <div class="metric-value">31</div>
+      <div class="metric-label">Feature Columns</div>
+    </div>
+    <div class="metric-divider"></div>
+    <div class="metric">
+      <div class="metric-value">6</div>
+      <div class="metric-label">Pipeline Stages</div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="pipeline" id="pipeline">
+    <div class="pipeline-inner">
+      <div class="section-label">// System Architecture</div>
+      <div class="section-title">Training Pipeline</div>
+      <div class="pipeline-steps">
+        <div class="pipe-step">
+          <div class="pipe-icon">🗄️</div>
+          <div class="pipe-name">Data Ingestion</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-icon">✅</div>
+          <div class="pipe-name">Validation</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-icon">⚙️</div>
+          <div class="pipe-name">Transformation</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🧠</div>
+          <div class="pipe-name">Model Training</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🏆</div>
+          <div class="pipe-name">Model Selection</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-icon">📦</div>
+          <div class="pipe-name">Final Model</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="section-label">// Capabilities</div>
+    <div class="section-title">What's Under The Hood</div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-number">01</div>
+        <div class="card-title">Smart Model Selection</div>
+        <div class="card-desc">Compares the current run against all historical MLflow runs. If a previous run produced better results, retrains locally with its exact parameters — no remote download required.</div>
+      </div>
+      <div class="card">
+        <div class="card-number">02</div>
+        <div class="card-title">Hyperparameter Tuning</div>
+        <div class="card-desc">GridSearchCV across the top 5 candidate models. Param grids are YAML-configured, with type-safe casting from MLflow string params back to native Python types.</div>
+      </div>
+      <div class="card">
+        <div class="card-number">03</div>
+        <div class="card-title">Experiment Tracking</div>
+        <div class="card-desc">Every run logged to DagShub via MLflow. Metrics, params, and tags persisted remotely. The pipeline always starts from the global best — not just the latest run.</div>
+      </div>
+      <div class="card">
+        <div class="card-number">04</div>
+        <div class="card-title">KNN Imputation</div>
+        <div class="card-desc">Missing value imputation via KNNImputer (k=3, uniform weights) fitted during transformation and bundled with the model in a NetworkModel wrapper for inference.</div>
+      </div>
+      <div class="card">
+        <div class="card-number">05</div>
+        <div class="card-title">Drift Detection</div>
+        <div class="card-desc">Data validation checks column counts and schema on every run. Drift reports generated as YAML artifacts alongside the validated train/test splits.</div>
+      </div>
+      <div class="card">
+        <div class="card-number">06</div>
+        <div class="card-title">Live Prediction API</div>
+        <div class="card-desc">Upload a CSV via the /predict endpoint. The NetworkModel transforms and scores in one call. Results returned as an HTML table and saved as a timestamped CSV artifact.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIONS -->
+  <section class="actions-section" id="actions">
+    <div class="section-label">// API Endpoints</div>
+    <div class="section-title">Run The System</div>
+    <div class="action-cards">
+      <a href="/train" class="action-card">
+        <span class="action-icon">⟶</span>
+        <div class="action-title">Train</div>
+        <div class="action-desc">Triggers the full training pipeline: ingestion → validation → transformation → training → model selection. Saves the best model to Final_Model/.</div>
+        <div class="action-cta">GET /train →</div>
+      </a>
+      <!-- <a href="/docs#/default/predict_route_predict_get" class="action-card danger"> -->
+        <a href="/predict" class="action-card danger">
+        <span class="action-icon">◈</span>
+        <div class="action-title">Predict</div>
+        <div class="action-desc">Upload a CSV file. The system loads the best saved NetworkModel, runs inference, appends predictions, and returns a rendered HTML table.</div>
+        <div class="action-cta">GET /predict →</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">NetGuard ML</div>
+    <div class="footer-links">
+      <a href="/docs">API Docs</a>
+      <a href="/train">Train</a>
+      <a href="/redoc">Redoc</a>
+    </div>
+    <div class="footer-copy">Network Security Intelligence System</div>
+  </footer>
+
+</body>
+</html>

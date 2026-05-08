@@ -98,6 +98,7 @@ class ModelSelectorConfig:
         )
         self.experiment_name: str = training_pipeline.MODEL_SELECTOR_EXPERIMENT_NAME
         self.metric_name: str     = training_pipeline.MODEL_SELECTOR_METRIC_NAME
+
 # testing:
 if __name__ == "__main__":
     print(training_pipeline.PIPELINE_NAME)

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prediction Results — NetGuard ML</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #050810;
+      --bg2:      #0a1020;
+      --bg3:      #0f1a30;
+      --accent:   #00d4aa;
+      --accent2:  #ff3b6b;
+      --text:     #c8d6e8;
+      --text-dim: #5a7a9a;
+      --border:   #1a2f4a;
+      --glow:     0 0 20px rgba(0,212,170,0.25);
+      --pos-bg:   rgba(0,212,170,0.08);
+      --neg-bg:   rgba(255,59,107,0.08);
+      --pos-text: #00d4aa;
+      --neg-text: #ff3b6b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(5,8,16,0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .back-link {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    .header-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+    }
+
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-ts {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    .btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 8px 20px;
+      border-radius: 2px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #00ffcc;
+      box-shadow: var(--glow);
+    }
+
+    /* ── MAIN ── */
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 48px;
+      max-width: 100%;
+    }
+
+    /* ── SUMMARY BAR ── */
+    .summary-bar {
+      display: flex;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 32px;
+      animation: slideIn 0.5s ease forwards;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .summary-item {
+      flex: 1;
+      background: var(--bg2);
+      padding: 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .summary-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .summary-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    /* ── TABLE WRAPPER ── */
+    .table-wrapper {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      animation: slideIn 0.5s ease forwards 0.1s;
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+
+    .table-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg3);
+    }
+
+    .table-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .table-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      background: rgba(0,212,170,0.1);
+      color: var(--accent);
+      border: 1px solid rgba(0,212,170,0.25);
+      border-radius: 1px;
+    }
+
+    /* ── TABLE STYLES ── */
+    .table-scroll { overflow-x: auto; }
+
+    table.table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    table.table thead tr {
+      background: var(--bg3);
+      border-bottom: 2px solid var(--border);
+    }
+
+    table.table thead th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 14px 20px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    table.table tbody tr {
+      border-bottom: 1px solid rgba(26,47,74,0.6);
+      transition: background 0.15s;
+    }
+
+    table.table tbody tr:hover { background: var(--bg3); }
+
+    table.table tbody td {
+      padding: 12px 20px;
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    /* ── Prediction column highlight ── */
+    table.table tbody td:last-child {
+      font-weight: 600;
+    }
+
+    /* Positive prediction (benign=1 or similar) */
+    table.table tbody tr[data-pred="1"] td:last-child,
+    table.table tbody tr[data-pred="-1"] td:last-child {
+      color: var(--neg-text);
+    }
+
+    table.table tbody tr[data-pred="0"] td:last-child {
+      color: var(--pos-text);
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      padding: 80px 48px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    .empty-msg {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── FOOTER BAR ── */
+    .footer-bar {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    .footer-note {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <a href="/" class="back-link">← Home</a>
+      <div class="header-divider"></div>
+      <div class="header-title">Prediction Results</div>
+    </div>
+    <div class="header-right">
+      <span class="header-ts" id="ts"></span>
+      <a href="/" class="btn btn-outline">New Prediction</a>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- SUMMARY BAR — populated by JS from the table -->
+    <div class="summary-bar" id="summaryBar">
+      <div class="summary-item">
+        <div class="summary-value" id="totalRows">—</div>
+        <div class="summary-label">Total Records</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="threatCount" style="color: var(--accent2)">—</div>
+        <div class="summary-label">Threats Detected</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="benignCount">—</div>
+        <div class="summary-label">Benign Records</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="threatPct">—</div>
+        <div class="summary-label">Threat Rate</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+      <div class="table-header-bar">
+        <span class="table-label">// Prediction Output</span>
+        <span class="table-badge" id="rowBadge">Loading...</span>
+      </div>
+      <div class="table-scroll">
+        {% if table %}
+          {{ table | safe }}
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">◈</div>
+            <div class="empty-msg">No prediction data available.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    <div class="footer-brand">NetGuard ML</div>
+    <div class="footer-note">Predictions saved as timestamped CSV in Predicted_Output/</div>
+  </div>
+
+  <script>
+    // ── Timestamp ──
+    document.getElementById('ts').textContent =
+      new Date().toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+
+    // ── Summary stats from rendered table ──
+    document.addEventListener('DOMContentLoaded', () => {
+      const table = document.querySelector('table.table');
+      if (!table) return;
+
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      const total = rows.length;
+
+      // Find predicted_column index
+      const headers = Array.from(table.querySelectorAll('thead th'));
+      const predIdx = headers.findIndex(h =>
+        h.textContent.trim().toLowerCase().includes('predicted')
+      );
+
+      let threats = 0;
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (predIdx >= 0 && cells[predIdx]) {
+          const val = cells[predIdx].textContent.trim();
+          // -1 = threat/malicious in typical network security datasets
+          if (val === '-1' || val === '1') threats++;
+          // Colour the prediction cell
+          if (val === '-1' || val === '1') {
+            cells[predIdx].style.color = 'var(--neg-text)';
+          } else {
+            cells[predIdx].style.color = 'var(--pos-text)';
+          }
+        }
+      });
+
+      const benign  = total - threats;
+      const pct     = total > 0 ? ((threats / total) * 100).toFixed(1) + '%' : '—';
+
+      document.getElementById('totalRows').textContent   = total.toLocaleString();
+      document.getElementById('threatCount').textContent = threats.toLocaleString();
+      document.getElementById('benignCount').textContent = benign.toLocaleString();
+      document.getElementById('threatPct').textContent   = pct;
+      document.getElementById('rowBadge').textContent    = `${total} records`;
+    });
+  </script>
+
+</body>
+</html>

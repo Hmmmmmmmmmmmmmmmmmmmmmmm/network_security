@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Predict — NetGuard ML</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #050810;
+      --bg2:      #0a1020;
+      --bg3:      #0f1a30;
+      --accent:   #00d4aa;
+      --accent2:  #ff3b6b;
+      --text:     #c8d6e8;
+      --text-dim: #5a7a9a;
+      --border:   #1a2f4a;
+      --glow:     0 0 20px rgba(0,212,170,0.3);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(5,8,16,0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 24px; }
+
+    .back-link {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-dim);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 8px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .header-divider { width: 1px; height: 24px; background: var(--border); }
+
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem; letter-spacing: 0.1em; color: var(--accent);
+    }
+
+    /* ── MAIN ── */
+    main {
+      position: relative; z-index: 1;
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 80px 48px;
+      gap: 48px;
+    }
+
+    .page-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--accent);
+      text-align: center;
+    }
+
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      letter-spacing: 0.06em; color: var(--text);
+      text-align: center; line-height: 1;
+    }
+
+    .page-sub {
+      font-size: 0.92rem; line-height: 1.75;
+      color: var(--text-dim); text-align: center;
+      max-width: 480px;
+    }
+
+    /* ── OPTION CARDS ── */
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .option-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 40px 36px;
+      display: flex; flex-direction: column;
+      gap: 20px;
+      position: relative; overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .option-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0; transition: opacity 0.3s;
+    }
+
+    .option-card.upload::before  { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+    .option-card.default::before { background: linear-gradient(90deg, transparent, var(--accent2), transparent); }
+
+    .option-card:hover { background: var(--bg3); transform: translateY(-3px); }
+    .option-card:hover::before { opacity: 1; }
+
+    .option-card.upload:hover  { box-shadow: 0 12px 40px rgba(0,0,0,0.4), var(--glow); border-color: rgba(0,212,170,0.4); }
+    .option-card.default:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(255,59,107,0.2); border-color: rgba(255,59,107,0.4); }
+
+    .option-icon { font-size: 2rem; }
+
+    .option-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .option-card.upload  .option-tag { color: var(--accent); }
+    .option-card.default .option-tag { color: var(--accent2); }
+
+    .option-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem; letter-spacing: 0.06em;
+      color: var(--text); line-height: 1;
+    }
+
+    .option-desc {
+      font-size: 0.86rem; line-height: 1.7;
+      color: var(--text-dim); flex: 1;
+    }
+
+    /* ── DROP ZONE ── */
+    .drop-zone {
+      border: 1px dashed var(--border);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(0,212,170,0.04);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .drop-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem; letter-spacing: 0.1em;
+      color: var(--text-dim); pointer-events: none;
+    }
+
+    .drop-label span { color: var(--accent); }
+
+    .file-selected {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem; color: var(--accent);
+      margin-top: 8px; display: none;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem; letter-spacing: 0.15em;
+      text-transform: uppercase; padding: 14px 24px;
+      border-radius: 2px; cursor: pointer;
+      width: 100%; border: none;
+      display: flex; align-items: center;
+      justify-content: center; gap: 10px;
+      transition: all 0.25s; font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--accent); color: var(--bg);
+    }
+    .btn-primary:hover {
+      background: #00ffcc; box-shadow: var(--glow);
+    }
+    .btn-primary:disabled {
+      opacity: 0.35; cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: var(--accent2); color: #fff;
+    }
+    .btn-danger:hover {
+      background: #ff5580;
+      box-shadow: 0 0 20px rgba(255,59,107,0.35);
+    }
+
+    /* ── SPINNER (shown during submission) ── */
+    .spinner {
+      display: none;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(5,8,16,0.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DIVIDER ── */
+    .or-divider {
+      display: flex; align-items: center;
+      gap: 16px; width: 100%; max-width: 860px;
+    }
+
+    .or-line { flex: 1; height: 1px; background: var(--border); }
+
+    .or-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem; letter-spacing: 0.2em;
+      color: var(--text-dim); text-transform: uppercase;
+    }
+
+    /* ── LOADING OVERLAY ── */
+    #loadingOverlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(5,8,16,0.92);
+      backdrop-filter: blur(8px);
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 24px;
+    }
+
+    #loadingOverlay.active { display: flex; }
+
+    .loading-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid rgba(0,212,170,0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    .loading-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--accent);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 20px 48px;
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+
+    .footer-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem; letter-spacing: 0.1em; color: var(--text-dim);
+    }
+
+    .footer-note {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem; color: var(--text-dim); opacity: 0.5;
+    }
+
+    @media (max-width: 640px) {
+      .options { grid-template-columns: 1fr; }
+      header, main, footer { padding-left: 24px; padding-right: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Running Inference...</div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <a href="/" class="back-link">← Home</a>
+      <div class="header-divider"></div>
+      <div class="header-title">Predict</div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="page-label">// Network Threat Detection</div>
+    <h1 class="page-title">Run Inference</h1>
+    <p class="page-sub">Upload a CSV of network traffic features, or run against the built-in test dataset.</p>
+
+    <div class="options">
+
+      <!-- UPLOAD OPTION -->
+      <div class="option-card upload">
+        <div class="option-icon">📂</div>
+        <div class="option-tag">// Option 01</div>
+        <div class="option-title">Upload CSV</div>
+        <div class="option-desc">Provide your own network traffic CSV. Must match the 31-feature schema used during training.</div>
+
+        <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
+          <div class="drop-zone" id="dropZone">
+            <input type="file" name="file" id="fileInput" accept=".csv" required/>
+            <div class="drop-label" id="dropLabel">
+              Drop CSV here or <span>browse</span>
+            </div>
+          </div>
+          <div class="file-selected" id="fileSelected">✓ &nbsp;<span id="fileName"></span></div>
+          <br/>
+          <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+            <div class="spinner" id="uploadSpinner"></div>
+            <span id="uploadBtnText">Select a file first</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- DEFAULT OPTION -->
+      <div class="option-card default">
+        <div class="option-icon">⚡</div>
+        <div class="option-tag">// Option 02</div>
+        <div class="option-title">Default Test File</div>
+        <div class="option-desc">Run inference on the pre-loaded test dataset. No upload required — useful for verifying the model is working.</div>
+
+        <form id="defaultForm" action="/predict" method="POST">
+          <input type="hidden" name="use_default" value="true"/>
+          <button type="submit" class="btn btn-danger" id="defaultBtn">
+            <div class="spinner" id="defaultSpinner"></div>
+            <span id="defaultBtnText">⟶ &nbsp;Use Default File</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">NetGuard ML</div>
+    <div class="footer-note">Results saved to Predicted_Output/ as timestamped CSV</div>
+  </footer>
+
+  <script>
+    const fileInput   = document.getElementById('fileInput');
+    const dropZone    = document.getElementById('dropZone');
+    const dropLabel   = document.getElementById('dropLabel');
+    const fileSelected = document.getElementById('fileSelected');
+    const fileName    = document.getElementById('fileName');
+    const uploadBtn   = document.getElementById('uploadBtn');
+    const uploadBtnText = document.getElementById('uploadBtnText');
+    const uploadSpinner = document.getElementById('uploadSpinner');
+    const defaultBtn  = document.getElementById('defaultBtn');
+    const defaultBtnText = document.getElementById('defaultBtnText');
+    const defaultSpinner = document.getElementById('defaultSpinner');
+    const overlay     = document.getElementById('loadingOverlay');
+
+    // ── File selection ──
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        const f = fileInput.files[0];
+        fileName.textContent  = f.name;
+        fileSelected.style.display = 'block';
+        dropLabel.innerHTML   = '✓ File ready';
+        uploadBtn.disabled    = false;
+        uploadBtnText.textContent = '⟶  Run Inference';
+      }
+    });
+
+    // ── Drag and drop ──
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault(); dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+
+    // ── Upload form submit ──
+    document.getElementById('uploadForm').addEventListener('submit', () => {
+      uploadSpinner.style.display = 'block';
+      uploadBtnText.textContent   = 'Running...';
+      uploadBtn.disabled          = true;
+      overlay.classList.add('active');
+    });
+
+    // ── Default form submit ──
+    document.getElementById('defaultForm').addEventListener('submit', () => {
+      defaultSpinner.style.display = 'block';
+      defaultBtnText.textContent   = 'Running...';
+      defaultBtn.disabled          = true;
+      overlay.classList.add('active');
+    });
+  </script>
+
+</body>
+</html>

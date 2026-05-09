@@ -181,6 +181,12 @@ Never commit `.env` to version control. It is already in `.gitignore`.
 
 ---
 
+# Dataset Info:
+Saved as **Network_Data\phishingData.csv** is an academically derived dataset (based on the UCI ML Repository phishing dataset by Mohammad et al.) where each row represents one URL. Raw web properties — URL structure, DNS records, HTML/JS content, and external reputation signals — have been extracted and encoded into a ternary scheme: {-1, 0, 1}, where -1 = phishing indicator, 0 = suspicious/intermediate, and 1 = legitimate indicator. The target column Result follows the same encoding: 1 = legitimate, -1 = phishing.
+in brief the data consists of:
+**11,055 -Total samples ; 30 - Features; 4,898 - Phishing URLs; 6,157 - Legitimate URLs**
+
+---
 ## Model Performance
 
 | Metric | Value |
@@ -191,3 +197,8 @@ Never commit `.env` to version control. It is already in `.gitignore`.
 | ROC-AUC | 0.9980 |
 
 ---
+
+PS: This project was made to see whats this MLOps and actual code which can be thrown in deployment and can be upgraded without the whole thing going down as it is call "*Modularity*". Started with the course i was following i ventured a bit here and there in terms of hyperparameter-tuning (do not do this on a bad machine) and then the FastAPI and everything i tried to keep it as Human written as possible but when it came to Landing page lets just say Claude knew exactly what i wanted. Hope if you are reading you go through this one and do hit me up regarding how the project was and what could have done better. I wonder if i claim to know ML after this.
+Signing off to touch some grass
+Yours truly,
+Hmmmmmmmmmmmmmmmmmmmmmmm

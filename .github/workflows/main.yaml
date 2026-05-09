@@ -2,10 +2,10 @@ name: workflow
 
 on:
   push:
-  branches:
-    - main
-  paths-ignore:
-    - "README.md"
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
 
 permissions:
   id-token: write
@@ -15,7 +15,7 @@ permissions:
 jobs:
   integration:
     name: Continuous integration
-    run-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -60,7 +60,7 @@ jobs:
       #   id: build-image
       #   env:
       #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME } }
+      #     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
       #     IMAGE TAG: latest
 
       #   run: |

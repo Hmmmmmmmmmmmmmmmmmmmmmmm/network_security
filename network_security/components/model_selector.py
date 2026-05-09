@@ -96,6 +96,8 @@ class ModelSelector:
         Delegate training to ModelTrainer — no training logic here.
         Preprocessor always from current run (fit on current data).
         """
+        log.info(f"We already have a better model in our data; {model_name}")
+        log.info(f"Re-training this model with best params: {raw_params}")
         model = self.model_trainer.train_single_model(model_name, raw_params)
 
         with open(self.trainer_art.trained_model_file_path, "rb") as fh:

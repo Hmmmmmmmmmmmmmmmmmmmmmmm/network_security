@@ -7,439 +7,269 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg:       #050810;
-      --bg2:      #0a1020;
-      --bg3:      #0f1a30;
-      --accent:   #00d4aa;
-      --accent2:  #ff3b6b;
-      --text:     #c8d6e8;
-      --text-dim: #5a7a9a;
-      --border:   #1a2f4a;
-      --glow:     0 0 20px rgba(0,212,170,0.25);
-      --pos-bg:   rgba(0,212,170,0.08);
-      --neg-bg:   rgba(255,59,107,0.08);
-      --pos-text: #00d4aa;
-      --neg-text: #ff3b6b;
+      --bg:#050810; --bg2:#0a1020; --bg3:#0f1a30;
+      --accent:#00d4aa; --accent2:#ff3b6b; --accent3:#4d9fff;
+      --text:#c8d6e8; --text-dim:#5a7a9a; --border:#1a2f4a;
+      --safe-bg:rgba(0,212,170,.08);  --safe-fg:#00d4aa;
+      --threat-bg:rgba(255,59,107,.08); --threat-fg:#ff3b6b;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;
+      font-weight:300;min-height:100vh;display:flex;flex-direction:column}
+    body::before{content:'';position:fixed;inset:0;
+      background-image:linear-gradient(rgba(0,212,170,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,212,170,.025) 1px,transparent 1px);
+      background-size:48px 48px;pointer-events:none;z-index:0}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* HEADER */
+    header{position:sticky;top:0;z-index:100;background:rgba(5,8,16,.92);
+      backdrop-filter:blur(14px);border-bottom:1px solid var(--border);
+      padding:0 40px;display:flex;align-items:center;
+      justify-content:space-between;height:60px}
+    .header-left{display:flex;align-items:center;gap:20px}
+    .back-link{font-family:'IBM Plex Mono',monospace;font-size:.7rem;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);
+      text-decoration:none;display:flex;align-items:center;gap:8px;transition:color .2s}
+    .back-link:hover{color:var(--accent)}
+    .hdivider{width:1px;height:24px;background:var(--border)}
+    .header-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;
+      letter-spacing:.1em;color:var(--accent)}
+    .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .header-ts{font-family:'IBM Plex Mono',monospace;font-size:.63rem;color:var(--text-dim)}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 300;
-      min-height: 100vh;
-    }
+    .btn{font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+      letter-spacing:.12em;text-transform:uppercase;padding:8px 18px;
+      border-radius:2px;cursor:pointer;border:none;transition:all .22s;
+      display:inline-flex;align-items:center;gap:7px;text-decoration:none;font-weight:600}
+    .btn-outline{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+    .btn-outline:hover{color:var(--accent);border-color:var(--accent)}
+    .btn-toggle{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+    .btn-toggle.active{background:rgba(0,212,170,.1);color:var(--accent);border-color:var(--accent)}
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
-    }
+    /* SUMMARY */
+    .summary-bar{position:relative;z-index:1;display:flex;gap:1px;
+      background:var(--border);border-bottom:1px solid var(--border);
+      animation:fadeDown .4s ease forwards}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    .summary-item{flex:1;background:var(--bg2);padding:16px 24px;
+      display:flex;flex-direction:column;gap:3px}
+    .summary-value{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;
+      letter-spacing:.04em;line-height:1}
+    .sv-total{color:var(--accent)} .sv-safe{color:var(--safe-fg)}
+    .sv-threat{color:var(--threat-fg)} .sv-pct{color:var(--accent3)}
+    .summary-label{font-family:'IBM Plex Mono',monospace;font-size:.6rem;
+      letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim)}
 
-    /* ── HEADER ── */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(5,8,16,0.92);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-    }
+    /* COLLAPSE STRIP */
+    .collapse-strip{position:relative;z-index:1;background:var(--bg3);
+      border-bottom:1px solid var(--border);padding:10px 24px;
+      display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .collapse-info{font-family:'IBM Plex Mono',monospace;font-size:.66rem;
+      color:var(--text-dim);letter-spacing:.08em}
+    .collapse-info strong{color:var(--text)}
+    .collapse-btns{display:flex;gap:8px}
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
+    /* TABLE WRAPPER */
+    .table-wrapper{position:relative;z-index:1;flex:1;overflow-x:auto;
+      background:var(--bg2);border-bottom:1px solid var(--border);
+      animation:fadeDown .4s ease .1s forwards;opacity:0}
 
-    .back-link {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: color 0.2s;
-    }
+    /* TABLE */
+    table.table{width:100%;border-collapse:collapse;
+      font-family:'IBM Plex Mono',monospace;font-size:.75rem}
+    table.table thead tr{background:var(--bg3);border-bottom:2px solid var(--border);
+      position:sticky;top:0;z-index:2}
+    table.table thead th{padding:11px 16px;text-align:left;white-space:nowrap;
+      font-size:.62rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--text-dim);border-right:1px solid rgba(26,47,74,.5)}
+    table.table thead th.pred-col{color:var(--accent);background:rgba(0,212,170,.04)}
+    table.table thead th.hidden-col{display:none}
 
-    .back-link:hover { color: var(--accent); }
+    table.table tbody tr{border-bottom:1px solid rgba(26,47,74,.5);transition:background .12s}
+    table.table tbody tr:hover{background:var(--bg3)}
+    table.table tbody tr.row-threat{background:rgba(255,59,107,.025)}
+    table.table tbody tr.row-threat:hover{background:rgba(255,59,107,.05)}
 
-    .header-divider {
-      width: 1px;
-      height: 24px;
-      background: var(--border);
-    }
+    table.table tbody td{padding:9px 16px;color:var(--text);
+      border-right:1px solid rgba(26,47,74,.3);white-space:nowrap}
+    table.table tbody td.hidden-col{display:none}
+    table.table tbody td.pred-col{font-weight:600;position:sticky;right:0;
+      background:var(--bg2);border-left:1px solid var(--border);z-index:1;
+      min-width:120px}
+    table.table tbody tr.row-threat td.pred-col{background:rgba(255,59,107,.04)}
 
-    .header-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.2rem;
-      letter-spacing: 0.1em;
-      color: var(--accent);
-    }
+    /* Prediction badges */
+    .pred-badge{display:inline-flex;align-items:center;gap:5px;
+      padding:3px 10px;border-radius:1px;font-size:.65rem;
+      font-weight:600;letter-spacing:.1em}
+    .pred-badge.safe{background:var(--safe-bg);color:var(--safe-fg);
+      border:1px solid rgba(0,212,170,.25)}
+    .pred-badge.threat{background:var(--threat-bg);color:var(--threat-fg);
+      border:1px solid rgba(255,59,107,.25)}
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
+    /* FOOTER */
+    footer{position:relative;z-index:1;border-top:1px solid var(--border);
+      padding:16px 40px;display:flex;align-items:center;
+      justify-content:space-between;flex-wrap:wrap;gap:10px}
+    .footer-brand{font-family:'Bebas Neue',sans-serif;font-size:.95rem;
+      letter-spacing:.1em;color:var(--text-dim)}
+    .footer-note{font-family:'IBM Plex Mono',monospace;font-size:.62rem;
+      color:var(--text-dim);opacity:.5}
 
-    .header-ts {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--text-dim);
-      letter-spacing: 0.08em;
-    }
-
-    .btn {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      text-decoration: none;
-      padding: 8px 20px;
-      border-radius: 2px;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--text-dim);
-      border: 1px solid var(--border);
-    }
-
-    .btn-outline:hover {
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: var(--bg);
-      font-weight: 600;
-    }
-
-    .btn-primary:hover {
-      background: #00ffcc;
-      box-shadow: var(--glow);
-    }
-
-    /* ── MAIN ── */
-    main {
-      position: relative;
-      z-index: 1;
-      padding: 48px;
-      max-width: 100%;
-    }
-
-    /* ── SUMMARY BAR ── */
-    .summary-bar {
-      display: flex;
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      margin-bottom: 32px;
-      animation: slideIn 0.5s ease forwards;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .summary-item {
-      flex: 1;
-      background: var(--bg2);
-      padding: 20px 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .summary-value {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      color: var(--accent);
-      line-height: 1;
-    }
-
-    .summary-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.62rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    /* ── TABLE WRAPPER ── */
-    .table-wrapper {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      overflow-x: auto;
-      animation: slideIn 0.5s ease forwards 0.1s;
-      opacity: 0;
-      animation-fill-mode: forwards;
-    }
-
-    .table-header-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg3);
-    }
-
-    .table-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    .table-badge {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      padding: 3px 10px;
-      background: rgba(0,212,170,0.1);
-      color: var(--accent);
-      border: 1px solid rgba(0,212,170,0.25);
-      border-radius: 1px;
-    }
-
-    /* ── TABLE STYLES ── */
-    .table-scroll { overflow-x: auto; }
-
-    table.table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-    }
-
-    table.table thead tr {
-      background: var(--bg3);
-      border-bottom: 2px solid var(--border);
-    }
-
-    table.table thead th {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      padding: 14px 20px;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    table.table tbody tr {
-      border-bottom: 1px solid rgba(26,47,74,0.6);
-      transition: background 0.15s;
-    }
-
-    table.table tbody tr:hover { background: var(--bg3); }
-
-    table.table tbody td {
-      padding: 12px 20px;
-      color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.78rem;
-      white-space: nowrap;
-    }
-
-    /* ── Prediction column highlight ── */
-    table.table tbody td:last-child {
-      font-weight: 600;
-    }
-
-    /* Positive prediction (benign=1 or similar) */
-    table.table tbody tr[data-pred="1"] td:last-child,
-    table.table tbody tr[data-pred="-1"] td:last-child {
-      color: var(--neg-text);
-    }
-
-    table.table tbody tr[data-pred="0"] td:last-child {
-      color: var(--pos-text);
-    }
-
-    /* ── EMPTY STATE ── */
-    .empty-state {
-      padding: 80px 48px;
-      text-align: center;
-    }
-
-    .empty-icon {
-      font-size: 3rem;
-      margin-bottom: 16px;
-      opacity: 0.4;
-    }
-
-    .empty-msg {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      letter-spacing: 0.1em;
-    }
-
-    /* ── FOOTER BAR ── */
-    .footer-bar {
-      position: relative;
-      z-index: 1;
-      border-top: 1px solid var(--border);
-      padding: 20px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .footer-brand {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.1em;
-      color: var(--text-dim);
-    }
-
-    .footer-note {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--text-dim);
-      opacity: 0.5;
-    }
+    .empty{padding:80px;text-align:center;color:var(--text-dim);
+      font-family:'IBM Plex Mono',monospace;font-size:.8rem}
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
     <div class="header-left">
-      <a href="/" class="back-link">← Home</a>
-      <div class="header-divider"></div>
+      <a href="/predict" class="back-link">← New Prediction</a>
+      <div class="hdivider"></div>
       <div class="header-title">Prediction Results</div>
     </div>
     <div class="header-right">
       <span class="header-ts" id="ts"></span>
-      <a href="/" class="btn btn-outline">New Prediction</a>
+      <button class="btn btn-toggle" id="toggleLabels" onclick="toggleLabelMode()">Show Labels</button>
+      <button class="btn btn-toggle active" id="toggleFeaturesBtn" onclick="toggleFeatures()">Hide Features</button>
+      <a href="/" class="btn btn-outline">Home</a>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main>
-
-    <!-- SUMMARY BAR — populated by JS from the table -->
-    <div class="summary-bar" id="summaryBar">
-      <div class="summary-item">
-        <div class="summary-value" id="totalRows">—</div>
-        <div class="summary-label">Total Records</div>
-      </div>
-      <div class="summary-item">
-        <div class="summary-value" id="threatCount" style="color: var(--accent2)">—</div>
-        <div class="summary-label">Threats Detected</div>
-      </div>
-      <div class="summary-item">
-        <div class="summary-value" id="benignCount">—</div>
-        <div class="summary-label">Benign Records</div>
-      </div>
-      <div class="summary-item">
-        <div class="summary-value" id="threatPct">—</div>
-        <div class="summary-label">Threat Rate</div>
-      </div>
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="summary-value sv-total" id="totalVal">—</div>
+      <div class="summary-label">Total Records</div>
     </div>
-
-    <!-- TABLE -->
-    <div class="table-wrapper">
-      <div class="table-header-bar">
-        <span class="table-label">// Prediction Output</span>
-        <span class="table-badge" id="rowBadge">Loading...</span>
-      </div>
-      <div class="table-scroll">
-        {% if table %}
-          {{ table | safe }}
-        {% else %}
-          <div class="empty-state">
-            <div class="empty-icon">◈</div>
-            <div class="empty-msg">No prediction data available.</div>
-          </div>
-        {% endif %}
-      </div>
+    <div class="summary-item">
+      <div class="summary-value sv-safe" id="safeVal">—</div>
+      <div class="summary-label">Safe / Benign</div>
     </div>
-
-  </main>
-
-  <!-- FOOTER -->
-  <div class="footer-bar">
-    <div class="footer-brand">NetGuard ML</div>
-    <div class="footer-note">Predictions saved as timestamped CSV in Predicted_Output/</div>
+    <div class="summary-item">
+      <div class="summary-value sv-threat" id="threatVal">—</div>
+      <div class="summary-label">Threats Detected</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-value sv-pct" id="pctVal">—</div>
+      <div class="summary-label">Threat Rate</div>
+    </div>
   </div>
 
-  <script>
-    // ── Timestamp ──
-    document.getElementById('ts').textContent =
-      new Date().toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+  <div class="collapse-strip">
+    <div class="collapse-info">
+      <strong id="featureCountLabel">—</strong> feature columns hidden/visible
+      &nbsp;·&nbsp; Predicted column always pinned right
+    </div>
+  </div>
 
-    // ── Summary stats from rendered table ──
+  <div class="table-wrapper">
+    {% if table %}
+      {{ table | safe }}
+    {% else %}
+      <div class="empty">No prediction data available.</div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <div class="footer-brand">NetGuard ML</div>
+    <div class="footer-note" id="footerNote">Results saved to Predicted_Output/</div>
+  </footer>
+
+  <script>
+    let featuresVisible = true;
+    let labelsMode      = false;
+    let predColIndex    = -1;
+    let featureIndices  = [];
+
+    function isThreat(v) {
+      const s = String(v).trim();
+      return s === '-1' || s === '1';
+    }
+
+    function labelHTML(raw) {
+      return isThreat(raw)
+        ? '<span class="pred-badge threat">⚠ THREAT</span>'
+        : '<span class="pred-badge safe">✓ SAFE</span>';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('ts').textContent =
+        new Date().toLocaleString('en-GB', {dateStyle:'medium',timeStyle:'short'});
+
       const table = document.querySelector('table.table');
       if (!table) return;
 
-      const rows = Array.from(table.querySelectorAll('tbody tr'));
-      const total = rows.length;
-
-      // Find predicted_column index
       const headers = Array.from(table.querySelectorAll('thead th'));
-      const predIdx = headers.findIndex(h =>
+      const rows    = Array.from(table.querySelectorAll('tbody tr'));
+
+      // Identify predicted column — by name or last column
+      predColIndex = headers.findIndex(h =>
         h.textContent.trim().toLowerCase().includes('predicted')
       );
+      if (predColIndex < 0) predColIndex = headers.length - 1;
 
-      let threats = 0;
-      rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (predIdx >= 0 && cells[predIdx]) {
-          const val = cells[predIdx].textContent.trim();
-          // -1 = threat/malicious in typical network security datasets
-          if (val === '-1' || val === '1') threats++;
-          // Colour the prediction cell
-          if (val === '-1' || val === '1') {
-            cells[predIdx].style.color = 'var(--neg-text)';
-          } else {
-            cells[predIdx].style.color = 'var(--pos-text)';
-          }
-        }
+      // Tag header cells
+      headers.forEach((th, i) => {
+        if (i === predColIndex) { th.classList.add('pred-col'); }
+        else { th.classList.add('feature-col'); featureIndices.push(i); }
       });
 
-      const benign  = total - threats;
-      const pct     = total > 0 ? ((threats / total) * 100).toFixed(1) + '%' : '—';
+      document.getElementById('featureCountLabel').textContent = featureIndices.length;
 
-      document.getElementById('totalRows').textContent   = total.toLocaleString();
-      document.getElementById('threatCount').textContent = threats.toLocaleString();
-      document.getElementById('benignCount').textContent = benign.toLocaleString();
-      document.getElementById('threatPct').textContent   = pct;
-      document.getElementById('rowBadge').textContent    = `${total} records`;
+      // Tag body cells + compute stats
+      let threats = 0;
+      rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        cells.forEach((td, i) => {
+          if (i === predColIndex) {
+            td.classList.add('pred-col');
+            const raw = td.textContent.trim();
+            td.setAttribute('data-raw', raw);  // store for toggle
+            if (isThreat(raw)) {
+              threats++;
+              row.classList.add('row-threat');
+            }
+          } else {
+            td.classList.add('feature-col');
+          }
+        });
+      });
+
+      const total = rows.length;
+      const safe  = total - threats;
+      const pct   = total > 0 ? ((threats/total)*100).toFixed(1)+'%' : '—';
+
+      document.getElementById('totalVal').textContent  = total.toLocaleString();
+      document.getElementById('safeVal').textContent   = safe.toLocaleString();
+      document.getElementById('threatVal').textContent = threats.toLocaleString();
+      document.getElementById('pctVal').textContent    = pct;
+      document.getElementById('footerNote').textContent =
+        total + ' records processed — saved to Predicted_Output/';
     });
+
+    // ── Hide / Show feature columns ────────────────────────────────────────
+    function toggleFeatures() {
+      featuresVisible = !featuresVisible;
+      document.querySelectorAll('.feature-col').forEach(el =>
+        el.classList.toggle('hidden-col', !featuresVisible)
+      );
+      const btn = document.getElementById('toggleFeaturesBtn');
+      btn.textContent = featuresVisible ? 'Hide Features' : 'Show Features';
+      btn.classList.toggle('active', featuresVisible);
+    }
+
+    // ── Raw values ↔ Safe / Threat labels ─────────────────────────────────
+    function toggleLabelMode() {
+      labelsMode = !labelsMode;
+      const btn = document.getElementById('toggleLabels');
+      btn.textContent = labelsMode ? 'Show Raw Values' : 'Show Labels';
+      btn.classList.toggle('active', labelsMode);
+
+      document.querySelectorAll('td.pred-col').forEach(td => {
+        const raw = td.getAttribute('data-raw') || td.textContent.trim();
+        td.innerHTML = labelsMode ? labelHTML(raw) : raw;
+      });
+    }
   </script>
 
 </body>

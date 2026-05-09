@@ -16,3 +16,5 @@ temp_metric.py
 catboost_info
 temp_*
 temp_*.py
+mermaid*
+./mermaid*

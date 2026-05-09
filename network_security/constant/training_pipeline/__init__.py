@@ -30,6 +30,8 @@ PREDICTED_OUTPUT_DIR: str = "predicted_output"
 PREDICTED_OUTPUT_FILE_NAME: str = "output.csv"
 DEFAULT_TEST_FILE = os.path.join("valid_data","test.csv")
 
+TRAINING_BUCKET_NAME = "networksecurity"
+
 """
 Data Ingestion related constant starts with DATA_INGESTION VAR NAME
 """

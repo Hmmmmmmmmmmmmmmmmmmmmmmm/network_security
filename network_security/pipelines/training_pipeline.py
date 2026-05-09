@@ -1,6 +1,7 @@
 import mlflow.sklearn
 from typing import Any, Dict, Tuple
 import os, sys
+from network_security.cloud.s3_syncer import S3Sync
 from network_security.components import model_trainer
 from network_security.exception.exception import NetworkSecurityException
 from network_security.logging.logger import get_logger
@@ -29,11 +30,14 @@ from network_security.entity.artifact_entity import(
     ModelTrainerArtifact,
     BestModelArtifact
 )
+from network_security.constant.training_pipeline import TRAINING_BUCKET_NAME
+
 import dagshub
 
 class TrainingPipeline:
     def __init__(self):
         self.training_pipeline_config = TrainingPipelineConfig()
+        self.s3_sync = S3Sync()
 
     def start_data_ingestion(self) -> DataIngestionArtifact:
         try:
@@ -125,23 +129,51 @@ class TrainingPipeline:
             log.error("Skill Issue", exc_info=True)
             raise NetworkSecurityException(e, sys) from e
 
+    # Cloud stuff
+    # Local artifact and model to s3 bucket
+    def sync_artifact_dir_to_s3(self):
+        try:
+            log.info(
+                "Cloud Enabled! - Syncing artifact to s3"
+            )
+            aws_bucket_url = f"s3://{TRAINING_BUCKET_NAME}/artifact/{self.training_pipeline_config.timestamp}"
+            self.s3_sync.sync_folder_to_s3(folder = self.training_pipeline_config.artifact_dir,
+            aws_bucket_url=aws_bucket_url)
+        except Exception as e:
+            log.error("AWS Sync failed", exc_info=True)
+            raise NetworkSecurityException(e, sys) from e
+    def sync_saved_model_dir_to_s3(self):
+        try:
+            log.info(
+                "Cloud Enabled! - Syncing Final_Model to s3"
+            )
+            aws_bucket_url = f"s3://{TRAINING_BUCKET_NAME}/final_model/{self.training_pipeline_config.timestamp}"
+            self.s3_sync.sync_folder_to_s3(folder = self.training_pipeline_config.model_dir,
+            aws_bucket_url=aws_bucket_url)
+        except Exception as e:
+            log.error("AWS Sync failed", exc_info=True)
+            raise NetworkSecurityException(e, sys) from e
+
     # Entry Point::
-    def run_pipeline(self):
+    def run_pipeline(self , cloud_usage: bool = False):
         try:
             log.info("Initializing Training Pipeline")
-
             # DagShub init lives here — one call covers the whole process
-            dagshub.init(
-                repo_owner="Hmmmmmmmmmmmmmmmmmmmmmmm",
-                repo_name="network_security",
-                mlflow=True,
-            )
+            # Used to now moved to app.py for ease of access even though it should be here
+            # dagshub.init(
+            #     repo_owner="",
+            #     repo_name="",
+            #     mlflow=True,
+            # )
             data_ingestion_artifact    = self.start_data_ingestion()
             data_validation_artifact   = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
             data_transformation_artifact = self.start_data_transformation(data_validation_artifact=data_validation_artifact)
             # instance + artifact both flow forward
             model_trainer, model_trainer_artifact = self.start_model_trainer(data_transformation_artifact=data_transformation_artifact)
             best_model_artifact = self.start_model_selector(model_trainer=model_trainer,model_trainer_artifact=model_trainer_artifact)
+            if cloud_usage:
+                self.sync_artifact_dir_to_s3()
+                self.sync_saved_model_dir_to_s3()
             log.info("Training Pipeline completed successfully")
             return best_model_artifact
 
@@ -149,7 +181,7 @@ class TrainingPipeline:
             log.info(f"Pipeline Ran Successfully:\n")
         except Exception as e:
             log.error("Pipeline Failed! aka: \"Skill Issue\"", exc_info=True)
-            raise NetworkSecurityException(e, sys) from e
+            # raise NetworkSecurityException(e, sys) from e
 
 
 

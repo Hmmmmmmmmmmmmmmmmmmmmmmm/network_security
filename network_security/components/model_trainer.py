@@ -100,6 +100,7 @@ class ModelTrainer:
                 models=models
             )
             top_models = results_df.head(5)["Model"].tolist()
+            log.info(f"Top 5 models selected for tuning: {top_models}")
             params_file_path = self.model_trainer_config.param_grid_file_path
             config = read_yaml(params_file_path)
             param_grids = config.get("param_grids", {}) # YAML FILE INTAKE HERE WITH PARAMS!!!

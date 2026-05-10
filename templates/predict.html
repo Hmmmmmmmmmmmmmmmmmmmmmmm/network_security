@@ -7,430 +7,409 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg:       #050810;
-      --bg2:      #0a1020;
-      --bg3:      #0f1a30;
-      --accent:   #00d4aa;
-      --accent2:  #ff3b6b;
-      --text:     #c8d6e8;
-      --text-dim: #5a7a9a;
-      --border:   #1a2f4a;
-      --glow:     0 0 20px rgba(0,212,170,0.3);
+      --bg:#050810;--bg2:#0a1020;--bg3:#0f1a30;
+      --accent:#00d4aa;--accent2:#ff3b6b;--accent3:#4d9fff;
+      --text:#c8d6e8;--text-dim:#5a7a9a;--border:#1a2f4a;
+      --glow:0 0 20px rgba(0,212,170,.3);
     }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 300;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
-    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;
+      font-weight:300;min-height:100vh;display:flex;flex-direction:column}
+    body::before{content:'';position:fixed;inset:0;
+      background-image:linear-gradient(rgba(0,212,170,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,212,170,.025) 1px,transparent 1px);
+      background-size:48px 48px;pointer-events:none;z-index:0}
 
     /* ── HEADER ── */
-    header {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(5,8,16,0.92);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 48px;
-      display: flex; align-items: center;
-      justify-content: space-between;
-      height: 64px;
-    }
+    header{position:sticky;top:0;z-index:100;background:rgba(5,8,16,.96);
+      backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+    .header-nav{padding:0 48px;display:flex;align-items:center;
+      justify-content:space-between;height:60px}
+    .header-left{display:flex;align-items:center;gap:24px}
+    .back-link{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--text-dim);text-decoration:none;
+      display:flex;align-items:center;gap:8px;transition:color .2s}
+    .back-link:hover{color:var(--accent)}
+    .hdivider{width:1px;height:24px;background:var(--border)}
+    .header-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;
+      letter-spacing:.1em;color:var(--accent)}
 
-    .header-left { display: flex; align-items: center; gap: 24px; }
+    /* ── MODEL INFO STRIP ── */
+    .model-strip{border-top:1px solid var(--border);cursor:pointer;
+      user-select:none;transition:background .2s}
+    .model-strip:hover{background:rgba(0,212,170,.03)}
+    .model-strip-bar{padding:10px 48px;display:flex;align-items:center;
+      justify-content:space-between;gap:16px}
+    .msb-left{display:flex;align-items:center;gap:16px}
+    .msb-label{font-family:'IBM Plex Mono',monospace;font-size:.6rem;
+      letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim)}
+    .msb-name{font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+      font-weight:600;color:var(--accent)}
+    .msb-right{display:flex;align-items:center;gap:16px}
+    .msb-metric{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-dim)}
+    .msb-metric strong{color:var(--text)}
+    .msb-chevron{font-size:.65rem;color:var(--text-dim);
+      transition:transform .3s;display:inline-block}
+    .msb-chevron.open{transform:rotate(180deg)}
+    .msb-loading{font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+      color:var(--text-dim);letter-spacing:.1em;animation:blink 1.2s infinite}
+    @keyframes blink{0%,100%{opacity:.4}50%{opacity:1}}
 
-    .back-link {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.7rem; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--text-dim);
-      text-decoration: none;
-      display: flex; align-items: center; gap: 8px;
-      transition: color 0.2s;
-    }
-    .back-link:hover { color: var(--accent); }
+    /* ── MODEL INFO BODY ── */
+    .model-body{display:none;border-top:1px solid var(--border);
+      padding:0 48px 20px}
+    .model-body.open{display:block}
+    .mb-source{font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+      color:var(--text-dim);padding:12px 0 16px;letter-spacing:.06em}
+    .mb-source strong{color:var(--accent3)}
 
-    .header-divider { width: 1px; height: 24px; background: var(--border); }
-
-    .header-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.2rem; letter-spacing: 0.1em; color: var(--accent);
-    }
+    .mb-sections{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .mb-section{border:1px solid var(--border);background:var(--bg2)}
+    .mb-section-header{padding:10px 16px;display:flex;align-items:center;
+      justify-content:space-between;cursor:pointer;
+      font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+      letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);
+      transition:all .2s}
+    .mb-section-header:hover{color:var(--accent);background:rgba(0,212,170,.04)}
+    .mb-section-chevron{font-size:.55rem;transition:transform .25s}
+    .mb-section-chevron.open{transform:rotate(90deg)}
+    .mb-section-body{display:none;padding:12px 16px;
+      border-top:1px solid var(--border)}
+    .mb-section-body.open{display:block}
+    .mb-row{display:flex;justify-content:space-between;align-items:baseline;
+      padding:4px 0;border-bottom:1px solid rgba(26,47,74,.4)}
+    .mb-row:last-child{border-bottom:none}
+    .mb-key{font-family:'IBM Plex Mono',monospace;font-size:.63rem;
+      color:var(--text-dim);letter-spacing:.06em}
+    .mb-val{font-family:'IBM Plex Mono',monospace;font-size:.7rem;
+      color:var(--text);font-weight:600}
 
     /* ── MAIN ── */
-    main {
-      position: relative; z-index: 1;
-      flex: 1;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 80px 48px;
-      gap: 48px;
-    }
+    main{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:60px 48px;gap:40px}
+    .page-label{font-family:'IBM Plex Mono',monospace;font-size:.7rem;
+      letter-spacing:.25em;text-transform:uppercase;color:var(--accent);text-align:center}
+    .page-title{font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.5rem,6vw,5rem);letter-spacing:.06em;
+      color:var(--text);text-align:center;line-height:1}
+    .page-sub{font-size:.92rem;line-height:1.75;color:var(--text-dim);
+      text-align:center;max-width:480px}
 
-    .page-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.7rem; letter-spacing: 0.25em;
-      text-transform: uppercase; color: var(--accent);
-      text-align: center;
-    }
-
-    .page-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(2.5rem, 6vw, 5rem);
-      letter-spacing: 0.06em; color: var(--text);
-      text-align: center; line-height: 1;
-    }
-
-    .page-sub {
-      font-size: 0.92rem; line-height: 1.75;
-      color: var(--text-dim); text-align: center;
-      max-width: 480px;
-    }
+    /* ── ERROR BANNER ── */
+    .error-banner{background:rgba(255,59,107,.08);border:1px solid rgba(255,59,107,.3);
+      padding:12px 20px;display:flex;align-items:center;gap:10px;width:100%;max-width:860px}
+    .error-banner span{font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+      color:var(--accent2);letter-spacing:.06em}
 
     /* ── OPTION CARDS ── */
-    .options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      width: 100%;
-      max-width: 860px;
-    }
-
-    .option-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      padding: 40px 36px;
-      display: flex; flex-direction: column;
-      gap: 20px;
-      position: relative; overflow: hidden;
-      transition: all 0.3s;
-    }
-
-    .option-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0;
-      height: 2px;
-      opacity: 0; transition: opacity 0.3s;
-    }
-
-    .option-card.upload::before  { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
-    .option-card.default::before { background: linear-gradient(90deg, transparent, var(--accent2), transparent); }
-
-    .option-card:hover { background: var(--bg3); transform: translateY(-3px); }
-    .option-card:hover::before { opacity: 1; }
-
-    .option-card.upload:hover  { box-shadow: 0 12px 40px rgba(0,0,0,0.4), var(--glow); border-color: rgba(0,212,170,0.4); }
-    .option-card.default:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(255,59,107,0.2); border-color: rgba(255,59,107,0.4); }
-
-    .option-icon { font-size: 2rem; }
-
-    .option-tag {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.62rem; letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .option-card.upload  .option-tag { color: var(--accent); }
-    .option-card.default .option-tag { color: var(--accent2); }
-
-    .option-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.8rem; letter-spacing: 0.06em;
-      color: var(--text); line-height: 1;
-    }
-
-    .option-desc {
-      font-size: 0.86rem; line-height: 1.7;
-      color: var(--text-dim); flex: 1;
-    }
+    .options{display:grid;grid-template-columns:1fr 1fr;gap:24px;
+      width:100%;max-width:860px}
+    .option-card{background:var(--bg2);border:1px solid var(--border);
+      padding:40px 36px;display:flex;flex-direction:column;gap:20px;
+      position:relative;overflow:hidden;transition:all .3s}
+    .option-card::before{content:'';position:absolute;top:0;left:0;right:0;
+      height:2px;opacity:0;transition:opacity .3s}
+    .option-card.upload::before{background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+    .option-card.default::before{background:linear-gradient(90deg,transparent,var(--accent2),transparent)}
+    .option-card:hover{background:var(--bg3);transform:translateY(-3px)}
+    .option-card:hover::before{opacity:1}
+    .option-card.upload:hover{box-shadow:0 12px 40px rgba(0,0,0,.4),var(--glow);border-color:rgba(0,212,170,.4)}
+    .option-card.default:hover{box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 20px rgba(255,59,107,.2);border-color:rgba(255,59,107,.4)}
+    .option-icon{font-size:2rem}
+    .option-tag{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase}
+    .option-card.upload  .option-tag{color:var(--accent)}
+    .option-card.default .option-tag{color:var(--accent2)}
+    .option-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;
+      letter-spacing:.06em;color:var(--text);line-height:1}
+    .option-desc{font-size:.86rem;line-height:1.7;color:var(--text-dim);flex:1}
 
     /* ── DROP ZONE ── */
-    .drop-zone {
-      border: 1px dashed var(--border);
-      padding: 24px 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.25s;
-      position: relative;
-    }
-
-    .drop-zone:hover,
-    .drop-zone.dragover {
-      border-color: var(--accent);
-      background: rgba(0,212,170,0.04);
-    }
-
-    .drop-zone input[type="file"] {
-      position: absolute; inset: 0;
-      opacity: 0; cursor: pointer; width: 100%; height: 100%;
-    }
-
-    .drop-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.72rem; letter-spacing: 0.1em;
-      color: var(--text-dim); pointer-events: none;
-    }
-
-    .drop-label span { color: var(--accent); }
-
-    .file-selected {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.7rem; color: var(--accent);
-      margin-top: 8px; display: none;
-      letter-spacing: 0.08em;
-    }
+    .drop-zone{border:1px dashed var(--border);padding:24px 16px;
+      text-align:center;cursor:pointer;transition:all .25s;position:relative}
+    .drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(0,212,170,.04)}
+    .drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .drop-label{font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+      letter-spacing:.1em;color:var(--text-dim);pointer-events:none}
+    .drop-label span{color:var(--accent)}
+    .file-selected{font-family:'IBM Plex Mono',monospace;font-size:.7rem;
+      color:var(--accent);margin-top:8px;display:none;letter-spacing:.08em}
 
     /* ── BUTTONS ── */
-    .btn {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.75rem; letter-spacing: 0.15em;
-      text-transform: uppercase; padding: 14px 24px;
-      border-radius: 2px; cursor: pointer;
-      width: 100%; border: none;
-      display: flex; align-items: center;
-      justify-content: center; gap: 10px;
-      transition: all 0.25s; font-weight: 600;
-    }
+    .btn{font-family:'IBM Plex Mono',monospace;font-size:.75rem;letter-spacing:.15em;
+      text-transform:uppercase;padding:14px 24px;border-radius:2px;cursor:pointer;
+      width:100%;border:none;display:flex;align-items:center;justify-content:center;
+      gap:10px;transition:all .25s;font-weight:600}
+    .btn-primary{background:var(--accent);color:var(--bg)}
+    .btn-primary:hover{background:#00ffcc;box-shadow:var(--glow)}
+    .btn-primary:disabled{opacity:.35;cursor:not-allowed}
+    .btn-danger{background:var(--accent2);color:#fff}
+    .btn-danger:hover{background:#ff5580;box-shadow:0 0 20px rgba(255,59,107,.35)}
 
-    .btn-primary {
-      background: var(--accent); color: var(--bg);
-    }
-    .btn-primary:hover {
-      background: #00ffcc; box-shadow: var(--glow);
-    }
-    .btn-primary:disabled {
-      opacity: 0.35; cursor: not-allowed;
-    }
-
-    .btn-danger {
-      background: var(--accent2); color: #fff;
-    }
-    .btn-danger:hover {
-      background: #ff5580;
-      box-shadow: 0 0 20px rgba(255,59,107,0.35);
-    }
-
-    /* ── SPINNER (shown during submission) ── */
-    .spinner {
-      display: none;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(5,8,16,0.3);
-      border-top-color: var(--bg);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── DIVIDER ── */
-    .or-divider {
-      display: flex; align-items: center;
-      gap: 16px; width: 100%; max-width: 860px;
-    }
-
-    .or-line { flex: 1; height: 1px; background: var(--border); }
-
-    .or-text {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem; letter-spacing: 0.2em;
-      color: var(--text-dim); text-transform: uppercase;
-    }
+    /* ── SPINNER ── */
+    .spinner{display:none;width:14px;height:14px;border:2px solid rgba(5,8,16,.3);
+      border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
     /* ── LOADING OVERLAY ── */
-    #loadingOverlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 999;
-      background: rgba(5,8,16,0.92);
-      backdrop-filter: blur(8px);
-      flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 24px;
-    }
-
-    #loadingOverlay.active { display: flex; }
-
-    .loading-spinner {
-      width: 48px; height: 48px;
-      border: 3px solid rgba(0,212,170,0.15);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-    }
-
-    .loading-text {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.8rem; letter-spacing: 0.2em;
-      text-transform: uppercase; color: var(--accent);
-    }
+    #loadingOverlay{display:none;position:fixed;inset:0;z-index:999;
+      background:rgba(5,8,16,.92);backdrop-filter:blur(8px);
+      flex-direction:column;align-items:center;justify-content:center;gap:24px}
+    #loadingOverlay.active{display:flex}
+    .loading-spinner{width:48px;height:48px;border:3px solid rgba(0,212,170,.15);
+      border-top-color:var(--accent);border-radius:50%;animation:spin .9s linear infinite}
+    .loading-text{font-family:'IBM Plex Mono',monospace;font-size:.8rem;
+      letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
 
     /* ── FOOTER ── */
-    footer {
-      position: relative; z-index: 1;
-      border-top: 1px solid var(--border);
-      padding: 20px 48px;
-      display: flex; align-items: center;
-      justify-content: space-between; flex-wrap: wrap; gap: 12px;
-    }
+    footer{position:relative;z-index:1;border-top:1px solid var(--border);
+      padding:20px 48px;display:flex;align-items:center;
+      justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .footer-brand{font-family:'Bebas Neue',sans-serif;font-size:1rem;
+      letter-spacing:.1em;color:var(--text-dim)}
+    .footer-note{font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+      color:var(--text-dim);opacity:.5}
 
-    .footer-brand {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem; letter-spacing: 0.1em; color: var(--text-dim);
-    }
-
-    .footer-note {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem; color: var(--text-dim); opacity: 0.5;
-    }
-
-    @media (max-width: 640px) {
-      .options { grid-template-columns: 1fr; }
-      header, main, footer { padding-left: 24px; padding-right: 24px; }
+    @media(max-width:640px){
+      .options{grid-template-columns:1fr}
+      .mb-sections{grid-template-columns:1fr}
+      header .model-strip-bar,.header-nav,.main,footer{padding-left:24px;padding-right:24px}
     }
   </style>
 </head>
 <body>
 
-  <!-- LOADING OVERLAY -->
-  <div id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Running Inference...</div>
-  </div>
+<div id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Running Inference...</div>
+</div>
 
-  <!-- HEADER -->
-  <header>
+<!-- HEADER -->
+<header>
+  <div class="header-nav">
     <div class="header-left">
       <a href="/" class="back-link">← Home</a>
-      <div class="header-divider"></div>
+      <div class="hdivider"></div>
       <div class="header-title">Predict</div>
     </div>
-  </header>
+  </div>
 
-  <!-- MAIN -->
-  <main>
-    <div class="page-label">// Network Threat Detection</div>
-    <h1 class="page-title">Run Inference</h1>
-    <p class="page-sub">Upload a CSV of network traffic features, or run against the built-in test dataset.</p>
+  <!-- MODEL INFO STRIP -->
+  <div class="model-strip" onclick="toggleModelPanel()">
+    <div class="model-strip-bar">
+      <div class="msb-left">
+        <span class="msb-label">// Active Model</span>
+        <span class="msb-name" id="msbName"><span class="msb-loading">Loading model info...</span></span>
+      </div>
+      <div class="msb-right">
+        <span class="msb-metric" id="msbF1"></span>
+        <span class="msb-metric" id="msbSource"></span>
+        <span class="msb-chevron" id="msbChevron">▼</span>
+      </div>
+    </div>
+  </div>
 
-    <div class="options">
+  <!-- MODEL INFO BODY (hidden by default) -->
+  <div class="model-body" id="modelBody">
+    <div class="mb-source" id="mbSource"></div>
+    <div class="mb-sections">
 
-      <!-- UPLOAD OPTION -->
-      <div class="option-card upload">
-        <div class="option-icon">📂</div>
-        <div class="option-tag">// Option 01</div>
-        <div class="option-title">Upload CSV</div>
-        <div class="option-desc">Provide your own network traffic CSV. Must match the 31-feature schema used during training.</div>
-
-        <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
-          <div class="drop-zone" id="dropZone">
-            <input type="file" name="file" id="fileInput" accept=".csv" required/>
-            <div class="drop-label" id="dropLabel">
-              Drop CSV here or <span>browse</span>
-            </div>
-          </div>
-          <div class="file-selected" id="fileSelected">✓ &nbsp;<span id="fileName"></span></div>
-          <br/>
-          <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
-            <div class="spinner" id="uploadSpinner"></div>
-            <span id="uploadBtnText">Select a file first</span>
-          </button>
-        </form>
+      <div class="mb-section">
+        <div class="mb-section-header" onclick="toggleSection('metrics',event)">
+          Performance Metrics
+          <span class="mb-section-chevron" id="ch-metrics">▶</span>
+        </div>
+        <div class="mb-section-body" id="sec-metrics"></div>
       </div>
 
-      <!-- DEFAULT OPTION -->
-      <div class="option-card default">
-        <div class="option-icon">⚡</div>
-        <div class="option-tag">// Option 02</div>
-        <div class="option-title">Default Test File</div>
-        <div class="option-desc">Run inference on the pre-loaded test dataset. No upload required — useful for verifying the model is working.</div>
-
-        <form id="defaultForm" action="/predict" method="POST">
-          <input type="hidden" name="use_default" value="true"/>
-          <button type="submit" class="btn btn-danger" id="defaultBtn">
-            <div class="spinner" id="defaultSpinner"></div>
-            <span id="defaultBtnText">⟶ &nbsp;Use Default File</span>
-          </button>
-        </form>
+      <div class="mb-section">
+        <div class="mb-section-header" onclick="toggleSection('params',event)">
+          Best Parameters
+          <span class="mb-section-chevron" id="ch-params">▶</span>
+        </div>
+        <div class="mb-section-body" id="sec-params"></div>
       </div>
 
     </div>
-  </main>
+  </div>
+</header>
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-brand">NetGuard ML</div>
-    <div class="footer-note">Results saved to Predicted_Output/ as timestamped CSV</div>
-  </footer>
+<!-- MAIN -->
+<main>
+  <div class="page-label">// Network Threat Detection</div>
+  <h1 class="page-title">Run Inference</h1>
+  <p class="page-sub">Upload a CSV of network traffic features, or run against the built-in test dataset.</p>
 
-  <script>
-    const fileInput   = document.getElementById('fileInput');
-    const dropZone    = document.getElementById('dropZone');
-    const dropLabel   = document.getElementById('dropLabel');
-    const fileSelected = document.getElementById('fileSelected');
-    const fileName    = document.getElementById('fileName');
-    const uploadBtn   = document.getElementById('uploadBtn');
-    const uploadBtnText = document.getElementById('uploadBtnText');
-    const uploadSpinner = document.getElementById('uploadSpinner');
-    const defaultBtn  = document.getElementById('defaultBtn');
-    const defaultBtnText = document.getElementById('defaultBtnText');
-    const defaultSpinner = document.getElementById('defaultSpinner');
-    const overlay     = document.getElementById('loadingOverlay');
+  <!-- Error banner (shown if template passes error) -->
+  {% if error %}
+  <div class="error-banner"><span>⚠ {{ error }}</span></div>
+  {% endif %}
 
-    // ── File selection ──
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length > 0) {
-        const f = fileInput.files[0];
-        fileName.textContent  = f.name;
-        fileSelected.style.display = 'block';
-        dropLabel.innerHTML   = '✓ File ready';
-        uploadBtn.disabled    = false;
-        uploadBtnText.textContent = '⟶  Run Inference';
+  <div class="options">
+
+    <!-- UPLOAD -->
+    <div class="option-card upload">
+      <div class="option-icon">📂</div>
+      <div class="option-tag">// Option 01</div>
+      <div class="option-title">Upload CSV</div>
+      <div class="option-desc">Provide your own network traffic CSV. Must match the 31-feature schema used during training.</div>
+      <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
+        <div class="drop-zone" id="dropZone">
+          <input type="file" name="file" id="fileInput" accept=".csv" required/>
+          <div class="drop-label" id="dropLabel">Drop CSV here or <span>browse</span></div>
+        </div>
+        <div class="file-selected" id="fileSelected">✓ &nbsp;<span id="fileName"></span></div>
+        <br/>
+        <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+          <div class="spinner" id="uploadSpinner"></div>
+          <span id="uploadBtnText">Select a file first</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- DEFAULT -->
+    <div class="option-card default">
+      <div class="option-icon">⚡</div>
+      <div class="option-tag">// Option 02</div>
+      <div class="option-title">Default Test File</div>
+      <div class="option-desc">Run inference on the pre-loaded test dataset. No upload required — useful for verifying the model is working.</div>
+      <form id="defaultForm" action="/predict" method="POST">
+        <input type="hidden" name="use_default" value="true"/>
+        <button type="submit" class="btn btn-danger" id="defaultBtn">
+          <div class="spinner" id="defaultSpinner"></div>
+          <span id="defaultBtnText">⟶ &nbsp;Use Default File</span>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-brand">NetGuard ML</div>
+  <div class="footer-note">Results saved to Predicted_Output/ as timestamped CSV</div>
+</footer>
+
+<script>
+  // ── File upload UX ─────────────────────────────────────────────────────
+  const fileInput      = document.getElementById('fileInput');
+  const dropZone       = document.getElementById('dropZone');
+  const dropLabel      = document.getElementById('dropLabel');
+  const fileSelected   = document.getElementById('fileSelected');
+  const fileName       = document.getElementById('fileName');
+  const uploadBtn      = document.getElementById('uploadBtn');
+  const uploadBtnText  = document.getElementById('uploadBtnText');
+  const uploadSpinner  = document.getElementById('uploadSpinner');
+  const defaultBtn     = document.getElementById('defaultBtn');
+  const defaultBtnText = document.getElementById('defaultBtnText');
+  const defaultSpinner = document.getElementById('defaultSpinner');
+  const overlay        = document.getElementById('loadingOverlay');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      fileName.textContent       = fileInput.files[0].name;
+      fileSelected.style.display = 'block';
+      dropLabel.innerHTML        = '✓ File ready';
+      uploadBtn.disabled         = false;
+      uploadBtnText.textContent  = '⟶  Run Inference';
+    }
+  });
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      fileInput.dispatchEvent(new Event('change'));
+    }
+  });
+
+  document.getElementById('uploadForm').addEventListener('submit', () => {
+    uploadSpinner.style.display = 'block'; uploadBtnText.textContent = 'Running...';
+    uploadBtn.disabled = true; overlay.classList.add('active');
+  });
+  document.getElementById('defaultForm').addEventListener('submit', () => {
+    defaultSpinner.style.display = 'block'; defaultBtnText.textContent = 'Running...';
+    defaultBtn.disabled = true; overlay.classList.add('active');
+  });
+
+  // ── Model info panel ───────────────────────────────────────────────────
+  let modelPanelOpen = false;
+
+  const SOURCE_NICE = {
+    'current_run_local':             'Trained this run — outperformed all history',
+    'retrained_historical_params':   'Retrained from best historical params (cross-run selection)',
+    'current_run_fallback_no_params':'Current run — historical run had no logged params',
+    'current_run_no_history':        'Current run — no historical runs available',
+  };
+
+  async function loadModelInfo() {
+    try {
+      const r    = await fetch('/model/info');
+      const info = await r.json();
+      if (!info || !info.model_class_name) {
+        document.getElementById('msbName').textContent = 'No model loaded yet — run training first';
+        return;
       }
-    });
 
-    // ── Drag and drop ──
-    dropZone.addEventListener('dragover', e => {
-      e.preventDefault(); dropZone.classList.add('dragover');
-    });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault(); dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        fileInput.files = e.dataTransfer.files;
-        fileInput.dispatchEvent(new Event('change'));
+      document.getElementById('msbName').textContent  = info.model_class_name;
+      document.getElementById('msbF1').innerHTML =
+        `F1 <strong>${(info.metric_value||0).toFixed(4)}</strong>`;
+      document.getElementById('msbSource').textContent =
+        info.selection_source === 'retrained_historical_params' ? '(cross-run)' : '(current run)';
+
+      // Source line in body
+      document.getElementById('mbSource').innerHTML =
+        `Selection: <strong>${SOURCE_NICE[info.selection_source] || info.selection_source || '—'}</strong>`;
+
+      // Metrics section
+      const metrics = {
+        'F1 Score':   (info.metric_value||0).toFixed(6),
+        'Saved At':   info.saved_at || '—',
+        'Experiment': info.experiment_name || '—',
+        'Run ID':     (info.run_id||'—').slice(0,12) + '…',
+      };
+      document.getElementById('sec-metrics').innerHTML =
+        Object.entries(metrics).map(([k,v]) => rowHTML(k,v)).join('');
+
+      // Params section
+      const params = info.params || {};
+      if (Object.keys(params).length === 0) {
+        document.getElementById('sec-params').innerHTML =
+          '<div class="mb-row"><span class="mb-key">No params logged</span></div>';
+      } else {
+        document.getElementById('sec-params').innerHTML =
+          Object.entries(params).map(([k,v]) => rowHTML(k,v)).join('');
       }
-    });
+    } catch(e) {
+      document.getElementById('msbName').textContent = 'Could not load model info';
+    }
+  }
 
-    // ── Upload form submit ──
-    document.getElementById('uploadForm').addEventListener('submit', () => {
-      uploadSpinner.style.display = 'block';
-      uploadBtnText.textContent   = 'Running...';
-      uploadBtn.disabled          = true;
-      overlay.classList.add('active');
-    });
+  function rowHTML(k, v) {
+    return `<div class="mb-row">
+      <span class="mb-key">${k}</span>
+      <span class="mb-val">${v}</span>
+    </div>`;
+  }
 
-    // ── Default form submit ──
-    document.getElementById('defaultForm').addEventListener('submit', () => {
-      defaultSpinner.style.display = 'block';
-      defaultBtnText.textContent   = 'Running...';
-      defaultBtn.disabled          = true;
-      overlay.classList.add('active');
-    });
-  </script>
+  function toggleModelPanel() {
+    modelPanelOpen = !modelPanelOpen;
+    document.getElementById('modelBody').classList.toggle('open', modelPanelOpen);
+    document.getElementById('msbChevron').classList.toggle('open', modelPanelOpen);
+  }
+
+  function toggleSection(id, e) {
+    e.stopPropagation(); // don't trigger parent strip toggle
+    const body = document.getElementById('sec-' + id);
+    const ch   = document.getElementById('ch-' + id);
+    const open = body.classList.toggle('open');
+    ch.classList.toggle('open', open);
+  }
+
+  // Load on page ready
+  loadModelInfo();
+</script>
 
 </body>
 </html>

@@ -3,6 +3,7 @@ import os
 import pickle
 import sys
 from typing import Any, Dict, Optional, Tuple
+import datetime
 
 import mlflow
 import mlflow.sklearn
@@ -114,6 +115,9 @@ class ModelSelector:
         """
         network_model = NetworkModel(model=model, preprocessor=preprocessor)
         save_object(file_path=self.cfg.best_model_file_path, obj=network_model)
+        # Also write a fixed-path metadata file for the /model/info endpoint
+        # meta_path = os.path.join(os.path.dirname(self.cfg.best_model_file_path),"model_metadata.json")
+        # (Final_Model/model_metadata.json)
         log.info("NetworkModel saved to: %s", self.cfg.best_model_file_path)
         return self.cfg.best_model_file_path
 
@@ -121,26 +125,50 @@ class ModelSelector:
         bundle = {"model": model, "preprocessor": preprocessor}
         save_object(file_path=self.cfg.best_model_file_path, obj=bundle)
         log.info("Model bundle saved to: %s", self.cfg.best_model_file_path)
+
         return self.cfg.best_model_file_path
 
+    # def _write_metadata(self, artifact: BestModelArtifact, source: str) -> None:
+    #     payload = {
+    #         "experiment_name":          artifact.experiment_name,
+    #         "run_id":                   artifact.run_id,
+    #         "model_name":               artifact.model_name,
+    #         "model_class_name":         artifact.model_class_name,
+    #         "metric_name":              artifact.metric_name,
+    #         "metric_value":             artifact.metric_value,
+    #         "selection_source":         source,
+    #         "mlflow_model_uri":         artifact.mlflow_model_uri,
+    #         "selected_model_file_path": artifact.selected_model_file_path,
+    #         "preprocessor_file_path":   artifact.preprocessor_file_path,
+    #         "params":                   artifact.params,
+    #         "tags":                     artifact.tags,
+    #     }
+    #     with open(self.cfg.metadata_file_path, "w", encoding="utf-8") as fh:
+    #         json.dump(payload, fh, indent=2, default=str)
+    #     log.info("Metadata written to: %s", self.cfg.metadata_file_path)
     def _write_metadata(self, artifact: BestModelArtifact, source: str) -> None:
         payload = {
-            "experiment_name":          artifact.experiment_name,
-            "run_id":                   artifact.run_id,
             "model_name":               artifact.model_name,
             "model_class_name":         artifact.model_class_name,
+            "experiment_name":          artifact.experiment_name,
+            "run_id":                   artifact.run_id,
             "metric_name":              artifact.metric_name,
             "metric_value":             artifact.metric_value,
             "selection_source":         source,
             "mlflow_model_uri":         artifact.mlflow_model_uri,
             "selected_model_file_path": artifact.selected_model_file_path,
-            "preprocessor_file_path":   artifact.preprocessor_file_path,
             "params":                   artifact.params,
             "tags":                     artifact.tags,
+            "saved_at":                 datetime.datetime.now().isoformat(),
         }
+        # Timestamped copy in Artifacts/
         with open(self.cfg.metadata_file_path, "w", encoding="utf-8") as fh:
             json.dump(payload, fh, indent=2, default=str)
-        log.info("Metadata written to: %s", self.cfg.metadata_file_path)
+        # Fixed path for /model/info endpoint
+        fixed_path = os.path.join(os.path.dirname(self.cfg.best_model_file_path), "model_metadata.json")
+        with open(fixed_path, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, indent=2, default=str)
+        log.info("Metadata written to: %s and %s", self.cfg.metadata_file_path, fixed_path)
 
     # ── Entry point ──────────────────────────────────────────────────────────
 

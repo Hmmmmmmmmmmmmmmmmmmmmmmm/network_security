@@ -37,6 +37,10 @@ from network_security.utils.main_utils.utils import load_object
 
 log = get_logger(__name__)
 
+import json
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
+
 # ── MongoDB ──────────────────────────────────────────────────────────────────
 client   = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
 database = client[DATA_INGESTION_DATABASE_NAME]
@@ -246,12 +250,50 @@ async def train_page(request: Request):
     return templates.TemplateResponse(request=request, name="train.html", context={})
 
 
+TRAINING_DISABLED = os.getenv("TRAINING_DISABLED", "false").lower() == "true"
+FINAL_MODEL_METADATA_PATH = os.path.join("Final_Model", "model_metadata.json")
+
+# Add after existing routes:
+
+@app.get("/train/is-enabled", tags=["training"])
+async def train_is_enabled():
+    # if TRAINING_DISABLED:
+    #     return {
+    #         "message": "Training disabled on this deployment",
+    #         "started": False
+    #     }
+    return {"enabled": not TRAINING_DISABLED}
+
+# In /train/start POST — add this check at the very top of the function:
+# if TRAINING_DISABLED:
+#     return {"message": "Training disabled on this deployment", "started": False}
+
+@app.get("/model/info", tags=["prediction"])
+async def model_info():
+    if os.path.exists(FINAL_MODEL_METADATA_PATH):
+        with open(FINAL_MODEL_METADATA_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+@app.get("/download/model", tags=["prediction"])
+async def download_model():
+    if not os.path.exists(FINAL_MODEL_PATH):
+        raise HTTPException(status_code=404, detail="Model not found. Run training first.")
+    return FileResponse(
+        path=FINAL_MODEL_PATH,
+        filename="best_model.pkl",
+        media_type="application/octet-stream"
+    )
+
 @app.post("/train/start", tags=["training"])
 async def train_start():
     """
     Kicks off the training pipeline in a thread-pool worker.
     Returns immediately (202 Accepted). Client polls /train/status for progress.
     """
+    if TRAINING_DISABLED:                                            # ← add
+        return {"message": "Training disabled on this deployment", "started": False}  # ← add
+
     global training_state
 
     with _state_lock:

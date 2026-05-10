@@ -1,0 +1,28 @@
+{
+  "model_name": "XGBoost",
+  "model_class_name": "XGBClassifier",
+  "experiment_name": "NetworkSecurityModel",
+  "run_id": "6791387a213a40beb1a323f77cfe5ff1",
+  "metric_name": "test_f1",
+  "metric_value": 0.9791858514844323,
+  "selection_source": "retrained_historical_params",
+  "mlflow_model_uri": "runs:/6791387a213a40beb1a323f77cfe5ff1/model",
+  "selected_model_file_path": "Final_Model\\best_model.pkl",
+  "params": {
+    "learning_rate": "0.1",
+    "subsample": "0.8",
+    "n_estimators": "500",
+    "colsample_bytree": "0.8",
+    "max_depth": "5"
+  },
+  "tags": {
+    "mlflow.user": "hmmmmmmmmmmmmmmmmmmmmmmm",
+    "mlflow.source.name": "main.py",
+    "mlflow.source.type": "LOCAL",
+    "mlflow.source.git.commit": "096e82b2bb61de6306a4b6cbe645feed5946e95b",
+    "mlflow.runName": "XGBoost",
+    "model_name": "XGBoost",
+    "pipeline": "NetworkSecurity"
+  },
+  "saved_at": "2026-05-11T00:20:15.778860"
+}

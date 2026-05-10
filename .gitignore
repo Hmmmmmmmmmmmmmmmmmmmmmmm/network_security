@@ -18,3 +18,13 @@ temp_*
 temp_*.py
 mermaid*
 ./mermaid*
+
+.vscode
+mlruns
+
+.predicted_output
+./predicted_output*
+\predicted_output
+predicted_output
+.\predicted_output
+predicted_out*

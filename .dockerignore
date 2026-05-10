@@ -30,9 +30,6 @@ mlruns/
 mlflow.db
 catboost_info/
 
-Model_Parameters/
-Network_Data/
-valid_data/
 
 push_data.py
 test_mongodb.py

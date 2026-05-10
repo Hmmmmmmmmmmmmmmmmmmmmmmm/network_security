@@ -595,6 +595,20 @@
       51%  { transform: scaleY(1); transform-origin: bottom; }
       100% { transform: scaleY(0); transform-origin: bottom; }
     }
+
+    /* ── TRAINING DISABLED MODAL ── */
+    .train-modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(5,8,16,.95);
+      backdrop-filter: blur(10px);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 40px;
+    }
+    .train-modal.active { display: flex; }
   </style>
 </head>
 <body>
@@ -627,8 +641,7 @@
       and serves real-time predictions — all through a single API.
     </p>
     <div class="hero-actions">
-      <a href="/train" class="btn btn-primary">⟶ Run Training Pipeline</a>
-      <!-- <a href="#actions" class="btn btn-secondary">Upload &amp; Predict</a>-->
+      <a href="/train" onclick="goToTrain(event)" class="btn btn-primary">⟶ Run Training Pipeline</a>
       <a href="/predict" class="btn btn-secondary">Upload &amp; Predict</a>
       <a href="/docs" class="btn btn-secondary">API Reference</a>
     </div>
@@ -743,7 +756,7 @@
     <div class="section-label">// API Endpoints</div>
     <div class="section-title">Run The System</div>
     <div class="action-cards">
-      <a href="/train" class="action-card">
+      <a href="/train" onclick="goToTrain(event)" class="action-card">
         <span class="action-icon">⟶</span>
         <div class="action-title">Train</div>
         <div class="action-desc">Triggers the full training pipeline: ingestion → validation → transformation → training → model selection. Saves the best model to Final_Model/.</div>
@@ -759,16 +772,63 @@
     </div>
   </section>
 
+  <!-- TRAINING DISABLED POPUP -->
+  <div id="trainBlockModal" class="train-modal">
+    <div style="max-width:560px;background:#0a1020;border:1px solid #1a2f4a;padding:40px;text-align:left">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#ff3b6b;margin-bottom:16px">
+        Training Disabled on This Deployment
+      </div>
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:#5a7a9a;line-height:1.8;margin-bottom:24px">
+        This is a demo deployment — training is disabled to prevent long-running jobs
+        on the free tier. To train locally, pull the Docker image or clone the repo.
+      </p>
+      <div style="background:#050810;border:1px solid #1a2f4a;padding:14px 18px;
+        font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#00d4aa;margin-bottom:24px;
+        cursor:pointer" onclick="navigator.clipboard.writeText(this.textContent.trim())">
+        docker pull yourdockerhubusername/netguard-ml:latest
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a href="/download/model" style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+          letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;
+          background:#00d4aa;color:#050810;text-decoration:none;font-weight:600">
+          ⬇ Download best_model.pkl
+        </a>
+        <button onclick="document.getElementById('trainBlockModal').classList.remove('active')"
+          style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.12em;
+          text-transform:uppercase;padding:12px 24px;background:transparent;
+          color:#5a7a9a;border:1px solid #1a2f4a;cursor:pointer">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer>
     <div class="footer-brand">NetGuard ML</div>
     <div class="footer-links">
       <a href="/docs">API Docs</a>
-      <a href="/train">Train</a>
+      <a href="/train" onclick="goToTrain(event)">Train</a>
+      <a href="/predict">Predict</a>
       <a href="/redoc">Redoc</a>
     </div>
     <div class="footer-copy">Network Security Intelligence System</div>
   </footer>
-
+  <script>
+    async function goToTrain(e) {
+      e.preventDefault();
+      try {
+        const r = await fetch('/train/is-enabled');
+        const d = await r.json();
+        if (d.enabled) {
+          window.location.href = '/train';
+        } else {
+          document.getElementById('trainBlockModal').classList.add('active');
+        }
+      } catch(_) {
+        window.location.href = '/train';
+      }
+    }
+  </script>
 </body>
 </html>

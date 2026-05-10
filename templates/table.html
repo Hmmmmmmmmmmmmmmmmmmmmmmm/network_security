@@ -118,6 +118,46 @@
 
     .empty{padding:80px;text-align:center;color:var(--text-dim);
       font-family:'IBM Plex Mono',monospace;font-size:.8rem}
+
+    /* ── MODEL INFO STRIP ── */
+    header{border-bottom:none}
+    .model-strip{border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+      cursor:pointer;user-select:none;transition:background .2s}
+    .model-strip:hover{background:rgba(0,212,170,.03)}
+    .model-strip-bar{padding:7px 40px;display:flex;align-items:center;
+      justify-content:space-between;gap:16px}
+    .msb-left{display:flex;align-items:center;gap:14px}
+    .msb-label{font-family:'IBM Plex Mono',monospace;font-size:.57rem;
+      letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim)}
+    .msb-name{font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+      font-weight:600;color:var(--accent)}
+    .msb-right{display:flex;align-items:center;gap:14px}
+    .msb-metric{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:var(--text-dim)}
+    .msb-metric strong{color:var(--text)}
+    .msb-chevron{font-size:.58rem;color:var(--text-dim);transition:transform .3s}
+    .msb-chevron.open{transform:rotate(180deg)}
+    .model-body{display:none;border-bottom:1px solid var(--border);padding:0 40px 14px;
+      background:var(--bg2)}
+    .model-body.open{display:block}
+    .mb-source{font-family:'IBM Plex Mono',monospace;font-size:.62rem;
+      color:var(--text-dim);padding:10px 0 12px}
+    .mb-source strong{color:var(--accent3)}
+    .mb-sections{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .mb-section{border:1px solid var(--border)}
+    .mb-section-header{padding:7px 12px;display:flex;align-items:center;
+      justify-content:space-between;cursor:pointer;
+      font-family:'IBM Plex Mono',monospace;font-size:.6rem;
+      letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);transition:all .2s}
+    .mb-section-header:hover{color:var(--accent);background:rgba(0,212,170,.04)}
+    .mb-section-chevron{font-size:.5rem;transition:transform .25s}
+    .mb-section-chevron.open{transform:rotate(90deg)}
+    .mb-section-body{display:none;padding:8px 12px;border-top:1px solid var(--border)}
+    .mb-section-body.open{display:block}
+    .mb-row{display:flex;justify-content:space-between;padding:3px 0;
+      border-bottom:1px solid rgba(26,47,74,.4)}
+    .mb-row:last-child{border-bottom:none}
+    .mb-key{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--text-dim)}
+    .mb-val{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--text);font-weight:600}
   </style>
 </head>
 <body>
@@ -135,6 +175,37 @@
       <a href="/" class="btn btn-outline">Home</a>
     </div>
   </header>
+
+  <!-- MODEL INFO STRIP (collapsible — same as predict page) -->
+  <div class="model-strip" onclick="toggleModelPanel()">
+    <div class="model-strip-bar">
+      <div class="msb-left">
+        <span class="msb-label">// Active Model</span>
+        <span class="msb-name" id="msbName">Loading...</span>
+      </div>
+      <div class="msb-right">
+        <span class="msb-metric" id="msbF1"></span>
+        <span class="msb-chevron" id="msbChevron">▼</span>
+      </div>
+    </div>
+  </div>
+  <div class="model-body" id="modelBody">
+    <div class="mb-source" id="mbSource"></div>
+    <div class="mb-sections">
+      <div class="mb-section">
+        <div class="mb-section-header" onclick="toggleSection('metrics',event)">
+          Performance Metrics <span class="mb-section-chevron" id="ch-metrics">▶</span>
+        </div>
+        <div class="mb-section-body" id="sec-metrics"></div>
+      </div>
+      <div class="mb-section">
+        <div class="mb-section-header" onclick="toggleSection('params',event)">
+          Best Parameters <span class="mb-section-chevron" id="ch-params">▶</span>
+        </div>
+        <div class="mb-section-body" id="sec-params"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="summary-bar">
     <div class="summary-item">
@@ -270,6 +341,68 @@
         td.innerHTML = labelsMode ? labelHTML(raw) : raw;
       });
     }
+
+    // ── Model info strip (identical logic to predict.html) ─────────────────
+    let modelPanelOpen = false;
+    const SOURCE_NICE = {
+      'current_run_local':             'Trained this run — best overall',
+      'retrained_historical_params':   'Retrained from best historical params',
+      'current_run_fallback_no_params':'Current run fallback (no params logged)',
+      'current_run_no_history':        'Current run — no history available',
+      'bundled_in_image':              'Bundled in deployment image',
+    };
+
+    async function loadModelInfo() {
+      try {
+        const info = await (await fetch('/model/info')).json();
+        if (!info || !info.model_class_name) {
+          document.getElementById('msbName').textContent = 'No model — run training';
+          return;
+        }
+        document.getElementById('msbName').textContent = info.model_class_name;
+        document.getElementById('msbF1').innerHTML =
+          info.metric_value != null
+            ? `F1 <strong>${parseFloat(info.metric_value).toFixed(4)}</strong>`
+            : '';
+        document.getElementById('mbSource').innerHTML =
+          `Selection: <strong>${SOURCE_NICE[info.selection_source] || info.selection_source || '—'}</strong>`;
+
+        const metrics = {
+          'F1 Score':   info.metric_value != null ? parseFloat(info.metric_value).toFixed(6) : '—',
+          'Saved At':   info.saved_at || '—',
+          'Run ID':     info.run_id ? info.run_id.slice(0,12)+'…' : '—',
+        };
+        document.getElementById('sec-metrics').innerHTML =
+          Object.entries(metrics).map(([k,v]) =>
+            `<div class="mb-row"><span class="mb-key">${k}</span><span class="mb-val">${v}</span></div>`
+          ).join('');
+
+        const params = info.params || {};
+        document.getElementById('sec-params').innerHTML =
+          Object.keys(params).length === 0
+            ? '<div class="mb-row"><span class="mb-key">No params logged</span></div>'
+            : Object.entries(params).map(([k,v]) =>
+                `<div class="mb-row"><span class="mb-key">${k}</span><span class="mb-val">${v}</span></div>`
+              ).join('');
+      } catch(e) {
+        document.getElementById('msbName').textContent = 'Could not load model info';
+      }
+    }
+
+    function toggleModelPanel() {
+      modelPanelOpen = !modelPanelOpen;
+      document.getElementById('modelBody').classList.toggle('open', modelPanelOpen);
+      document.getElementById('msbChevron').classList.toggle('open', modelPanelOpen);
+    }
+
+    function toggleSection(id, e) {
+      e.stopPropagation();
+      const body = document.getElementById('sec-'+id);
+      const ch   = document.getElementById('ch-'+id);
+      ch.classList.toggle('open', body.classList.toggle('open'));
+    }
+
+    loadModelInfo();
   </script>
 
 </body>

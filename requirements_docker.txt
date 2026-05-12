@@ -1,0 +1,31 @@
+# ── Web framework ─────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+jinja2==3.1.4
+
+# ── Data & ML ─────────────────────────────────────────────────
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.1
+xgboost==2.1.1
+catboost==1.2.5
+seaborn
+matplotlib
+
+# ── Experiment tracking ───────────────────────────────────────
+mlflow==2.15.1
+dagshub==0.3.25
+
+# ── Database ──────────────────────────────────────────────────
+pymongo==4.8.0
+dnspython==2.6.1
+
+# ── Config ────────────────────────────────────────────────────
+python-dotenv==1.0.1
+pydantic==2.8.2
+pydantic-settings==2.4.0
+
+# ── Serialisation ─────────────────────────────────────────────
+cloudpickle==3.0.0
+dill==0.3.8

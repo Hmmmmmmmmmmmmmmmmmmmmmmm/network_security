@@ -24,11 +24,14 @@ COPY valid_data ./valid_data
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s \
-  CMD curl -f http://localhost:8000/health || exit 1
+# Changed from /health to /model/info — /health is not defined in app.py.
+# /model/info is a lightweight JSON endpoint that proves the app and model loaded.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s \
+  CMD curl -f http://localhost:8000/model/info || exit 1
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
-
+# --workers 1 is intentional: training uses background threads and shared state.
+# Multiple workers would give each worker its own training state, breaking /train/status.
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
 
 
 

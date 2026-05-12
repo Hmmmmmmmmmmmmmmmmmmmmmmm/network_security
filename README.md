@@ -321,7 +321,8 @@ The `main.yaml` is already configured. To activate it, add the required secrets 
 
 
 ## Yap
-PS: This project was made to see whats this MLOps and actual code which can be thrown in deployment and can be upgraded without the whole thing going down as it is call "*Modularity*". Started with the course i was following i ventured a bit here and there in terms of hyperparameter-tuning (do not do this on a bad machine) and then the FastAPI and everything i tried to keep it as Human written as possible but when it came to Landing page lets just say Claude knew exactly what i wanted. Hope if you are reading you go through this one and do hit me up regarding how the project was and what could have done better. I wonder if i claim to know ML after this.
+PS: This project was made to see whats this MLOps and actual code which can be thrown in deployment and can be upgraded without the whole thing going down as it is call "*Modularity*". Started with the course I was following, then I ventured a bit here and there in terms of hyperparameter-tuning (do not do this on a bad machine: speaking from painful experience) and then messing around with FastAPI and everything. I tried to keep it as Human written as possible but when it came to Landing page lets just say Claude knew exactly what I wanted. Hope if you are reading you go through this one and do hit me up regarding how the project was and what could have done better. I wonder if I can claim to know ML after this.
+
 Signing off to touch some grass
 Yours truly,
 Hmmmmmmmmmmmmmmmmmmmmmmm

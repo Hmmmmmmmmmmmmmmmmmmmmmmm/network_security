@@ -150,7 +150,7 @@ Dockerfile
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/your-username/network-security-ml.git
+git clone https://github.com/Hmmmmmmmmmmmmmmmmmmmmmmm/network_security.git
 cd network-security-ml
 pip install -r requirements.txt
 ```
@@ -181,7 +181,7 @@ python app.py
 ### Pull and run pre-built image
 
 ```bash
-docker pull yourdockerhubusername/netguard-ml:latest
+docker pull hmmmmmmmmm/netguard-app
 ```
 
 Create `.env`:
@@ -194,7 +194,7 @@ TRAINING_DISABLED=true
 
 Run:
 ```bash
-docker run --env-file .env -p 8000:8000 yourdockerhubusername/netguard-ml:latest
+docker run --env-file .env -p 8000:8000 hmmmmmmmmm/netguard-ml:latest
 ```
 
 The `best_model.pkl` is bundled in the image — prediction works immediately. Training is disabled by default in the Docker image.
